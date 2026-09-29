@@ -10,8 +10,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  CheckCircle2,
-  Clock,
   Image as ImageIcon,
   RefreshCw,
 } from 'lucide-react';
@@ -123,7 +121,7 @@ export const AdminGalleryPage: React.FC = () => {
       const res = await adminApi.uploadImage(file);
       setFormData((prev) => ({
         ...prev,
-        image_url: res.file_url,
+        image_url: res.file_url || res.url,
         title: prev.title || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
       }));
     } catch (err: any) {
@@ -214,13 +212,13 @@ export const AdminGalleryPage: React.FC = () => {
       </div>
 
       {successMsg && (
-        <Alert variant="success" onClose={() => setSuccessMsg(null)}>
+        <Alert variant="success">
           {successMsg}
         </Alert>
       )}
 
       {error && (
-        <Alert variant="danger" onClose={() => setError(null)}>
+        <Alert variant="error">
           {error}
         </Alert>
       )}
@@ -248,7 +246,7 @@ export const AdminGalleryPage: React.FC = () => {
       {/* Gallery Cards Grid */}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center space-y-3">
-          <Spinner size="lg" color="primary" />
+          <Spinner size="lg" color="saffron" />
           <p className="text-xs text-slate-500 font-medium">Loading photo gallery...</p>
         </div>
       ) : filteredItems.length > 0 ? (

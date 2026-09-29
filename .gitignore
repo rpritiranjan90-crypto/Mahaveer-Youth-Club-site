@@ -78,3 +78,10 @@ backend/logs/
 postgres_data/
 *.sqlite3
 *.db
+
+# Uploaded media files
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+

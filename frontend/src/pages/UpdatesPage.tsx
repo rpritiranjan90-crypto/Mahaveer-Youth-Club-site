@@ -10,17 +10,20 @@ import { UpdateCard } from '../components/content/UpdateCard';
 import { updatesData, UpdateItem } from '../data/updates';
 import { clubInfo } from '../data/club';
 import { usePageMeta } from '../utils/seo';
+import { usePublicUpdates } from '../utils/usePublicData';
 
 export const UpdatesPage: React.FC = () => {
   const [selectedUpdate, setSelectedUpdate] = useState<UpdateItem | null>(null);
+  const { updates } = usePublicUpdates();
 
   usePageMeta({
     title: `Updates & Notices — ${clubInfo.name}`,
     description: `Official announcements, pandal preparations, volunteer rosters, and festival advisories from ${clubInfo.name}.`,
   });
 
-  const featured = updatesData.find((u) => u.featured) || updatesData[0];
-  const otherUpdates = updatesData.filter((u) => u.id !== featured.id);
+  const activeUpdates = updates.length > 0 ? updates : updatesData;
+  const featured = activeUpdates.find((u) => u.featured) || activeUpdates[0];
+  const otherUpdates = activeUpdates.filter((u) => u.id !== featured.id);
 
   return (
     <div className="space-y-0 text-left">

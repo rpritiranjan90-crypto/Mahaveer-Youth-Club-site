@@ -9,12 +9,17 @@ import { Timeline } from '../components/content/Timeline';
 import { historyTimelineData } from '../data/history';
 import { clubInfo } from '../data/club';
 import { usePageMeta } from '../utils/seo';
+import { usePublicHistory } from '../utils/usePublicData';
 
 export const HistoryPage: React.FC = () => {
+  const { history } = usePublicHistory();
+
   usePageMeta({
     title: `Our History & Milestones — ${clubInfo.name}`,
     description: `Chronicle of ${clubInfo.name} from its founding in ${clubInfo.foundedYear} to the present day. 28+ years of cultural heritage, eco-initiatives, and community seva.`,
   });
+
+  const activeHistory = history.length > 0 ? history : historyTimelineData;
 
   return (
     <div className="space-y-0 text-left">
@@ -43,7 +48,7 @@ export const HistoryPage: React.FC = () => {
         align="center"
         background="white"
       >
-        <Timeline items={historyTimelineData} />
+        <Timeline items={activeHistory} />
       </Section>
 
       {/* 3. Current Chapter & Future Vision */}

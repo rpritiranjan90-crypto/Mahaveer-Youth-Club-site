@@ -9,9 +9,11 @@ import { ActivityCard } from '../components/content/ActivityCard';
 import { activitiesData, ActivityItem } from '../data/activities';
 import { clubInfo } from '../data/club';
 import { usePageMeta } from '../utils/seo';
+import { usePublicActivities } from '../utils/usePublicData';
 
 export const PujaPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const { activities } = usePublicActivities();
 
   usePageMeta({
     title: `Puja & Activities — ${clubInfo.name}`,
@@ -20,10 +22,12 @@ export const PujaPage: React.FC = () => {
 
   const categories = ['All', 'Ritual', 'Welfare', 'Cultural', 'Sports'];
 
+  const allActivities = activities.length > 0 ? activities : activitiesData;
+
   const filteredActivities =
     selectedCategory === 'All'
-      ? activitiesData
-      : activitiesData.filter((act) => act.category.toLowerCase() === selectedCategory.toLowerCase());
+      ? allActivities
+      : allActivities.filter((act) => act.category.toLowerCase() === selectedCategory.toLowerCase());
 
   return (
     <div className="space-y-0 text-left">

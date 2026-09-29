@@ -198,3 +198,37 @@ def test_admin_donation_settings_update(client, admin_headers):
     assert patch_res.json()["upi_id"] == "testclub@upi"
 
 
+def test_admin_validation_errors(client, admin_headers):
+    """
+    Verify invalid payloads trigger 422 Unprocessable Entity.
+    """
+    # Missing required title and content
+    res = client.post("/api/v1/admin/updates", headers=admin_headers, json={})
+    assert res.status_code == 422
+
+    # Missing required activity fields
+    res2 = client.post("/api/v1/admin/activities", headers=admin_headers, json={})
+    assert res2.status_code == 422
+
+
+def test_admin_non_existent_item_404(client, admin_headers):
+    """
+    Verify modifying or deleting non-existent items returns 404.
+    """
+    res = client.patch("/api/v1/admin/updates/999999", headers=admin_headers, json={"title": "Test"})
+    assert res.status_code == 404
+
+    res2 = client.delete("/api/v1/admin/updates/999999", headers=admin_headers)
+    assert res2.status_code == 404
+
+    res3 = client.patch("/api/v1/admin/gallery/999999", headers=admin_headers, json={"title": "Test"})
+    assert res3.status_code == 404
+
+    res4 = client.patch("/api/v1/admin/activities/999999", headers=admin_headers, json={"title": "Test"})
+    assert res4.status_code == 404
+
+    res5 = client.patch("/api/v1/admin/history/999999", headers=admin_headers, json={"title": "Test"})
+    assert res5.status_code == 404
+
+
+

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
 import { Alert } from '../components/ui/Alert';
 import { Shield, Lock, Mail, Eye, EyeOff, Sparkles, ArrowLeft } from 'lucide-react';
 
@@ -81,7 +80,7 @@ export const AdminLoginPage: React.FC = () => {
 
           {errorMsg && (
             <div className="mb-6">
-              <Alert variant="danger" title="Access Denied" onClose={() => setErrorMsg(null)}>
+              <Alert variant="error" title="Access Denied">
                 {errorMsg}
               </Alert>
             </div>

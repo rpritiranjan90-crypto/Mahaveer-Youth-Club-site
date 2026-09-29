@@ -56,8 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const res = await authApi.login(email, password);
-      setUser(res.user);
       setTokenState(res.access_token);
+      const userData = await authApi.getMe();
+      setUser(userData);
     } finally {
       setIsLoading(false);
     }

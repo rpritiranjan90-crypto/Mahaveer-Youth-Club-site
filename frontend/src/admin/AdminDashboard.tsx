@@ -59,7 +59,7 @@ export const AdminDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="py-20 flex flex-col items-center justify-center space-y-3">
-        <Spinner size="lg" color="primary" />
+        <Spinner size="lg" color="saffron" />
         <p className="text-xs text-slate-500 font-medium">Fetching real-time portal statistics...</p>
       </div>
     );

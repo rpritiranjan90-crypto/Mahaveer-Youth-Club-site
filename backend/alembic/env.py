@@ -7,8 +7,13 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Ensure backend root is in python path
-sys.path.insert(0, dirname(dirname(abspath(__file__))))
+# Ensure project root and backend root are in python path
+backend_dir = dirname(dirname(abspath(__file__)))
+project_root = dirname(backend_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 from backend.app.core.config import settings
 from backend.app.models import Base
@@ -26,8 +31,10 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
-# Set sqlalchemy.url from our settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Set sqlalchemy.url from our settings if not explicitly passed
+db_url = config.get_main_option("sqlalchemy.url") or settings.DATABASE_URL
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:

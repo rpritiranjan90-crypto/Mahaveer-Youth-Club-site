@@ -1,4 +1,5 @@
 import io
+from pathlib import Path
 import pytest
 from fastapi import HTTPException
 from backend.app.services.storage import StorageService
@@ -68,3 +69,42 @@ def test_storage_size_limit_validation():
     )
     assert is_valid is False
     assert "exceeds maximum" in msg.lower()
+
+
+def test_storage_png_webp_uploads(client, admin_headers):
+    """
+    Verify PNG and WebP files are accepted.
+    """
+    # PNG upload
+    fake_png = io.BytesIO(b"\x89PNG\r\n\x1a\n" + b"0" * 50)
+    files = {"file": ("banner.png", fake_png, "image/png")}
+    res_png = client.post("/api/v1/admin/upload", headers=admin_headers, files=files)
+    assert res_png.status_code == 200
+    assert res_png.json()["content_type"] == "image/png"
+
+    # WebP upload
+    fake_webp = io.BytesIO(b"RIFF\x00\x00\x00\x00WEBPVP8 " + b"0" * 50)
+    files = {"file": ("banner.webp", fake_webp, "image/webp")}
+    res_webp = client.post("/api/v1/admin/upload", headers=admin_headers, files=files)
+    assert res_webp.status_code == 200
+    assert res_webp.json()["content_type"] == "image/webp"
+
+
+def test_storage_safe_delete(admin_headers):
+    """
+    Verify storage_service delete_image function safely removes uploaded files.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory() as temp_dir:
+        storage = StorageService(base_dir=temp_dir)
+        temp_file = Path(temp_dir) / "test_del.jpg"
+        temp_file.write_bytes(b"image data")
+        assert temp_file.exists()
+
+        success = storage.delete_image("test_del.jpg")
+        assert success is True
+        assert not temp_file.exists()
+
+        # Path traversal delete attempt is safely ignored
+        assert storage.delete_image("../test.jpg") is False
+

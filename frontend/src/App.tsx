@@ -1,7 +1,18 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Navbar } from './components/layout/Navbar';
-import { Footer } from './components/layout/Footer';
+import { AuthProvider } from './admin/AuthContext';
+import { ProtectedRoute } from './admin/ProtectedRoute';
+import { AdminLayout } from './admin/AdminLayout';
+import { AdminLoginPage } from './admin/AdminLoginPage';
+import { AdminDashboard } from './admin/AdminDashboard';
+import { AdminUpdatesPage } from './admin/AdminUpdatesPage';
+import { AdminGalleryPage } from './admin/AdminGalleryPage';
+import { AdminActivitiesPage } from './admin/AdminActivitiesPage';
+import { AdminHistoryPage } from './admin/AdminHistoryPage';
+import { AdminClubPage } from './admin/AdminClubPage';
+import { AdminDonationPage } from './admin/AdminDonationPage';
+
+import { PublicLayout } from './components/layout/PublicLayout';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -16,13 +27,12 @@ import { ComponentShowcase } from './components/showcase/ComponentShowcase';
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col bg-[#FFF8EE] text-[#241A17] font-sans antialiased selection:bg-orange-200 selection:text-orange-950">
-        {/* Public Website Header */}
-        <Navbar />
-
-        {/* Main Content Viewport */}
-        <main className="flex-1">
-          <Routes>
+      <AuthProvider>
+        <Routes>
+          {/* ----------------------------------------------------------------- */}
+          {/* Public Website Routes (Wrapped with Public Layout)               */}
+          {/* ----------------------------------------------------------------- */}
+          <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/history" element={<HistoryPage />} />
@@ -32,13 +42,37 @@ export const App: React.FC = () => {
             <Route path="/donate" element={<DonatePage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/showcase" element={<ComponentShowcase />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </main>
+            <Route path="/404" element={<NotFoundPage />} />
+          </Route>
 
-        {/* Public Website Footer */}
-        <Footer />
-      </div>
+          {/* ----------------------------------------------------------------- */}
+          {/* Admin Authentication Routes                                       */}
+          {/* ----------------------------------------------------------------- */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+
+          {/* ----------------------------------------------------------------- */}
+          {/* Protected Admin Management Routes                                 */}
+          {/* ----------------------------------------------------------------- */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="updates" element={<AdminUpdatesPage />} />
+              <Route path="gallery" element={<AdminGalleryPage />} />
+              <Route path="activities" element={<AdminActivitiesPage />} />
+              <Route path="history" element={<AdminHistoryPage />} />
+              <Route path="club" element={<AdminClubPage />} />
+              <Route path="donation" element={<AdminDonationPage />} />
+            </Route>
+          </Route>
+
+          {/* ----------------------------------------------------------------- */}
+          {/* Catch-all 404 Route                                               */}
+          {/* ----------------------------------------------------------------- */}
+          <Route element={<PublicLayout />}>
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

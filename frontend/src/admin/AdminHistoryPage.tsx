@@ -185,13 +185,13 @@ export const AdminHistoryPage: React.FC = () => {
       </div>
 
       {successMsg && (
-        <Alert variant="success" onClose={() => setSuccessMsg(null)}>
+        <Alert variant="success">
           {successMsg}
         </Alert>
       )}
 
       {error && (
-        <Alert variant="danger" onClose={() => setError(null)}>
+        <Alert variant="error">
           {error}
         </Alert>
       )}
@@ -200,7 +200,7 @@ export const AdminHistoryPage: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" color="saffron" />
             <p className="text-xs text-slate-500 font-medium">Loading history chronicle...</p>
           </div>
         ) : history.length > 0 ? (

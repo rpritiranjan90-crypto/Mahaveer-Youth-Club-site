@@ -148,21 +148,117 @@ npm run build
 npm run dev
 ```
 
-Open `http://localhost:5173` in your browser. All 8 routes (`/`, `/about`, `/history`, `/puja`, `/gallery`, `/updates`, `/donate`, `/contact`) are registered and ready for Phase 2 styling and Phase 3 page composition.
+Open `http://localhost:5173` in your browser.
 
 ---
 
-## 4. Development Roadmap & Phases
+## 4. Phase 4 — Backend, Database & Admin Architecture
 
-- [x] **Phase 0 — Planning & Specifications (PRD.md)**
-- [x] **Phase 1 — Technical Project Foundation (FastAPI + React + Vite + Tailwind + DB Architecture)**
-- [ ] **Phase 2 — UI Foundation & Design System (Tokens, Themes, Core Layouts)**
-- [ ] **Phase 3 — Public Website Implementation (8 Pages)**
-- [ ] **Phase 4 — Backend Features & Database Models**
-- [ ] **Phase 5 — Admin Management Panel**
-- [ ] **Phase 6 — Security, Rate Limiting & Auditing**
-- [ ] **Phase 7 — Donation & Dynamic UPI Reconciliation**
-- [ ] **Phase 8 — Real Content & Media Integration**
-- [ ] **Phase 9 — Comprehensive End-to-End Testing**
-- [ ] **Phase 10 — Production Deployment & CI/CD**
-- [ ] **Phase 11 — Launch & Festive Operations**
+### 4.1 Architecture Flow
+```text
+Admin User
+   │
+   ▼
+Admin Panel (/admin) [React + TypeScript + Tailwind CSS]
+   │
+   ▼ (Bearer JWT Authorization)
+Secure REST API (/api/v1/) [FastAPI + Pydantic v2]
+   │
+   ├────────► Database (PostgreSQL / SQLite) [SQLAlchemy 2 + Alembic]
+   │
+   └────────► Media Storage (Uploads directory with MIME & size validation)
+   │
+   ▼ (Read-Only Public Endpoints & Fallback Data)
+Public Website (/ , /about , /puja , /gallery , /history , /updates , /donate , /contact)
+```
+
+---
+
+### 4.2 Database Models & Schemas
+1. **User / Admin (`users`)**: `id`, `name`, `email` (unique index), `password_hash`, `role` (default: `admin`), `is_active`, `created_at`, `updated_at`, `last_login_at`.
+2. **Club Information (`club_settings`)**: `id`, `name`, `tagline`, `description`, `location`, `address`, `landmark`, `phone`, `email`, `registration_number`, `instagram_url`, `facebook_url`, `youtube_url`, `updated_at`.
+3. **Updates & Notices (`updates`)**: `id`, `title`, `slug` (unique index), `excerpt`, `content`, `image_url`, `category`, `published` (index), `published_at`, `created_at`, `updated_at`.
+4. **Photo Gallery (`gallery`)**: `id`, `title`, `description`, `image_url`, `category`, `year`, `published` (index), `sort_order`, `created_at`, `updated_at`.
+5. **Activities & Rituals (`activities`)**: `id`, `title`, `description`, `category` (Ritual, Welfare, Cultural, Sports), `date`, `time`, `location`, `image_url`, `featured`, `published` (index), `created_at`, `updated_at`.
+6. **History Milestones (`history`)**: `id`, `year`, `title`, `description`, `tag`, `image_url`, `sort_order`, `published` (index), `created_at`, `updated_at`.
+7. **Donation Settings (`donation_settings`)**: `id`, `club_name`, `upi_id`, `qr_image_url`, `description`, `suggested_amounts`, `updated_at`. *(Version 1: Official Club UPI QR only; no payment gateways or automated verification).*
+
+---
+
+### 4.3 Database Migrations (Alembic)
+To apply database migrations to the latest revision:
+```bash
+cd backend
+python -m alembic upgrade head
+```
+
+To rollback all migrations:
+```bash
+python -m alembic downgrade base
+```
+
+---
+
+### 4.4 Authentication & Security
+- **Algorithm:** JWT (HS256) with configurable expiration via `ACCESS_TOKEN_EXPIRE_MINUTES`.
+- **Password Hashing:** Bcrypt with unique salt per user.
+- **Authorization Guard:** `get_current_admin` FastAPI dependency enforces active admin credentials on all administrative endpoints.
+- **Development Admin Credentials:**
+  - Email: `admin@mahaveeryouthclub.org`
+  - Password: `AdminPassword123!`
+
+---
+
+### 4.5 API Overview
+
+#### Public APIs (Read-only, Published Content Only)
+- `GET /api/v1/public/club` — Club profile and official contact information
+- `GET /api/v1/public/updates` — Published notices (supports `?category=` filter)
+- `GET /api/v1/public/updates/{slug}` — Single published notice by URL slug
+- `GET /api/v1/public/gallery` — Published gallery photos (supports `?category=` and `?year=` filters)
+- `GET /api/v1/public/activities` — Published rituals and welfare events (supports `?category=` filter)
+- `GET /api/v1/public/history` — Published chronological history milestones
+- `GET /api/v1/public/donation` — Official club UPI identifier and contribution presets
+
+#### Admin APIs (Protected via Bearer Token)
+- `POST /api/v1/auth/login` — Authenticate and receive JWT token
+- `POST /api/v1/auth/logout` — Invalidate session
+- `GET /api/v1/auth/me` — Current authenticated administrator profile
+- `GET /api/v1/admin/stats` — Content metrics and recent notice submissions
+- `GET / POST / PATCH / DELETE /api/v1/admin/updates` — Manage announcements
+- `GET / POST / PATCH / DELETE /api/v1/admin/gallery` — Manage photo gallery
+- `GET / POST / PATCH / DELETE /api/v1/admin/activities` — Manage schedule and events
+- `GET / POST / PATCH / DELETE /api/v1/admin/history` — Manage historical chronicle
+- `GET / PATCH /api/v1/admin/club` — Update club profile settings
+- `GET / PATCH /api/v1/admin/donation` — Update official UPI credentials & QR
+- `POST /api/v1/admin/upload` — Secure media file uploader (MIME and size verified)
+
+---
+
+### 4.6 Media Storage Security
+- Allowed file types: `.jpg`, `.jpeg`, `.png`, `.webp` (MIME: `image/jpeg`, `image/png`, `image/webp`).
+- Max upload limit: 5 MB (`MAX_UPLOAD_SIZE_BYTES`).
+- Path traversal protection: Filenames with `..`, `/`, or `\` are rejected; stored files receive randomized UUID names.
+- Public static serving mounted at `/uploads`.
+
+---
+
+### 4.7 Admin Management Panel (`/admin`)
+- `/admin/login` — Accessible admin authentication interface.
+- `/admin` — Real-time metrics dashboard with quick-action shortcuts.
+- `/admin/updates` — Full notice management with category filtering and publication toggling.
+- `/admin/gallery` — Image upload with year/category tagging and preview.
+- `/admin/activities` — Ritual and event scheduling.
+- `/admin/history` — Milestone chronological management.
+- `/admin/club` — Club identity, registration, and social link settings.
+- `/admin/donation` — Official UPI QR and contribution tier settings.
+
+---
+
+## 5. Development Roadmap Status
+
+- [x] **Phase 1 — Project Foundation**
+- [x] **Phase 2 — Design System & UI Foundation**
+- [x] **Phase 3 — Public Website**
+- [x] **Phase 4 — Backend, Database & Admin Foundation**
+

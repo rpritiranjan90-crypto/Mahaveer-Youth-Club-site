@@ -8,12 +8,17 @@ import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { galleryData, galleryCategories } from '../data/gallery';
 import { clubInfo } from '../data/club';
 import { usePageMeta } from '../utils/seo';
+import { usePublicGallery } from '../utils/usePublicData';
 
 export const GalleryPage: React.FC = () => {
+  const { gallery } = usePublicGallery();
+
   usePageMeta({
     title: `Photo & Video Gallery — ${clubInfo.name}`,
     description: `Browse photographs and memorable moments from ${clubInfo.name} Ganesh Utsav celebrations, theme pandals, Aarti rituals, and welfare drives.`,
   });
+
+  const activeGallery = gallery.length > 0 ? gallery : galleryData;
 
   return (
     <div className="space-y-0 text-left">
@@ -42,7 +47,7 @@ export const GalleryPage: React.FC = () => {
         align="center"
         background="white"
       >
-        <GalleryGrid items={galleryData} categories={galleryCategories} />
+        <GalleryGrid items={activeGallery} categories={galleryCategories} />
       </Section>
 
       {/* 3. Community Submission CTA */}

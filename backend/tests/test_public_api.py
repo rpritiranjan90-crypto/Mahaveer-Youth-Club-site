@@ -118,3 +118,64 @@ def test_get_public_donation(client):
     data = response.json()
     assert "upi_id" in data
     assert "club_name" in data
+
+
+def test_public_activities_published_filtering(client, db_session):
+    """
+    Verify unpublished activities are not returned in public API.
+    """
+    from backend.app.models.activity import Activity
+    hidden_act = Activity(
+        title="Secret Internal Committee Meeting",
+        category="Internal",
+        date="Tomorrow",
+        location="Office",
+        description="Private meeting",
+        published=False,
+    )
+    db_session.add(hidden_act)
+    db_session.commit()
+
+    res = client.get("/api/v1/public/activities")
+    assert res.status_code == 200
+    titles = [a["title"] for a in res.json()]
+    assert "Secret Internal Committee Meeting" not in titles
+
+
+def test_public_history_published_filtering(client, db_session):
+    """
+    Verify unpublished history milestones are not returned in public API.
+    """
+    from backend.app.models.history import History
+    hidden_hist = History(
+        year="1995",
+        title="Pre-Founding Informal Discussions",
+        description="Informal planning before club formation",
+        sort_order=0,
+        published=False,
+    )
+    db_session.add(hidden_hist)
+    db_session.commit()
+
+    res = client.get("/api/v1/public/history")
+    assert res.status_code == 200
+    titles = [h["title"] for h in res.json()]
+    assert "Pre-Founding Informal Discussions" not in titles
+
+
+def test_public_query_filters(client):
+    """
+    Verify category and year filters on public endpoints.
+    """
+    # Updates category filter
+    res = client.get("/api/v1/public/updates?category=Pandal")
+    assert res.status_code == 200
+
+    # Gallery category & year filter
+    res_gal = client.get("/api/v1/public/gallery?category=Pandal&year=2026")
+    assert res_gal.status_code == 200
+
+    # Activities category filter
+    res_act = client.get("/api/v1/public/activities?category=Ritual")
+    assert res_act.status_code == 200
+

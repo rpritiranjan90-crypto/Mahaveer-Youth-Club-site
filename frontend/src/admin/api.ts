@@ -3,7 +3,7 @@
  * Secure REST API integration with token management and standardized error handling.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 export interface ApiError {
   code: number;
@@ -158,7 +158,7 @@ export const adminApi = {
     request<any>('/admin/donation', { method: 'PATCH', body: JSON.stringify(data) }),
 
   // File Upload
-  uploadImage: async (file: File): Promise<{ file_url: string; filename: string }> => {
+  uploadImage: async (file: File): Promise<{ url: string; file_url: string; filename: string; content_type?: string; size_bytes?: number }> => {
     const formData = new FormData();
     formData.append('file', file);
 

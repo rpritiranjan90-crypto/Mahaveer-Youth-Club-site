@@ -136,7 +136,7 @@ export const AdminUpdatesPage: React.FC = () => {
     setUploadingImage(true);
     try {
       const res = await adminApi.uploadImage(file);
-      setFormData((prev) => ({ ...prev, image_url: res.file_url }));
+      setFormData((prev) => ({ ...prev, image_url: res.file_url || res.url }));
     } catch (err: any) {
       setError(err?.message || 'Failed to upload image.');
     } finally {
@@ -230,13 +230,13 @@ export const AdminUpdatesPage: React.FC = () => {
       </div>
 
       {successMsg && (
-        <Alert variant="success" onClose={() => setSuccessMsg(null)}>
+        <Alert variant="success">
           {successMsg}
         </Alert>
       )}
 
       {error && (
-        <Alert variant="danger" onClose={() => setError(null)}>
+        <Alert variant="error">
           {error}
         </Alert>
       )}
@@ -276,7 +276,7 @@ export const AdminUpdatesPage: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" color="saffron" />
             <p className="text-xs text-slate-500 font-medium">Loading announcements...</p>
           </div>
         ) : filteredUpdates.length > 0 ? (

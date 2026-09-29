@@ -10,7 +10,7 @@ export const ProtectedRoute: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white space-y-4">
-        <Spinner size="lg" color="primary" />
+        <Spinner size="lg" color="saffron" />
         <p className="text-sm text-slate-400 font-medium animate-pulse">
           Authenticating secure administrator portal...
         </p>
