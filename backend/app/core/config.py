@@ -1,6 +1,6 @@
 import json
 from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     API_V1_STR: str = "/api/v1"
 
-    # Security
+    # Security & Auth
     SECRET_KEY: str = "default-insecure-key-change-in-production-0987654321"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
     # CORS Configuration
     CORS_ORIGINS: Union[List[str], str] = [
@@ -60,7 +62,10 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_db_connection(cls, v: Union[str, None], info) -> str:
         if isinstance(v, str) and v.strip():
-            return v.strip()
+            url = v.strip()
+            if url.startswith("postgresql://") and not url.startswith("postgresql+"):
+                url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+            return url
         # Fallback to building URL from components
         values = info.data
         user = values.get("POSTGRES_USER", "postgres")
@@ -68,7 +73,13 @@ class Settings(BaseSettings):
         server = values.get("POSTGRES_SERVER", "localhost")
         port = values.get("POSTGRES_PORT", 5432)
         db = values.get("POSTGRES_DB", "mahaveer_club_db")
-        return f"postgresql://{user}:{pwd}@{server}:{port}/{db}"
+        return f"postgresql+psycopg2://{user}:{pwd}@{server}:{port}/{db}"
+
+    # Storage & Uploads
+    UPLOAD_DIR: str = "uploads"
+    MAX_UPLOAD_SIZE_BYTES: int = 5 * 1024 * 1024  # 5 MB
+    ALLOWED_IMAGE_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".webp"]
+    ALLOWED_IMAGE_MIME_TYPES: List[str] = ["image/jpeg", "image/png", "image/webp"]
 
     # Logging
     LOG_LEVEL: str = "INFO"
