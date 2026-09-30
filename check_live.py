@@ -31,17 +31,21 @@ print('3. Public updates:', get(f'{BASE}/public/updates'))
 print('4. Public donation:', get(f'{BASE}/public/donation'))
 
 import os
-EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@mahaveeryouthclub.org')
-PASSWORD = os.environ.get('ADMIN_PASSWORD', 'TestAdminPass123!')
+EMAIL = os.environ.get('ADMIN_EMAIL')
+PASSWORD = os.environ.get('ADMIN_PASSWORD')
 
-status, login_res = post(f'{BASE}/auth/login', {'email': EMAIL, 'password': PASSWORD})
-print('5. Admin Login:', status, 'token received:', bool(login_res.get('access_token')))
-token = login_res.get('access_token')
+if EMAIL and PASSWORD:
+    status, login_res = post(f'{BASE}/auth/login', {'email': EMAIL, 'password': PASSWORD})
+    print('5. Admin Login:', status, 'token received:', bool(login_res.get('access_token')))
+    token = login_res.get('access_token')
 
-if token:
-    print('6. Admin Get Me:', get(f'{BASE}/auth/me', token))
-    print('7. Admin Stats:', get(f'{BASE}/admin/stats', token))
-    print('ALL LIVE API CHECKS PASSED!')
+    if token:
+        print('6. Admin Get Me:', get(f'{BASE}/auth/me', token))
+        print('7. Admin Stats:', get(f'{BASE}/admin/stats', token))
+        print('ALL LIVE API CHECKS PASSED!')
+    else:
+        print('LOGIN FAILED!')
+        sys.exit(1)
 else:
-    print('LOGIN FAILED!')
-    sys.exit(1)
+    print('5. Admin Login: Skipped (ADMIN_EMAIL and ADMIN_PASSWORD not set in environment).')
+    print('PUBLIC API CHECKS PASSED!')

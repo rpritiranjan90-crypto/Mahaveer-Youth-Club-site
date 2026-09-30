@@ -17,8 +17,8 @@ def init_first_superuser(db: Session) -> None:
     """
     load_dotenv()
     Base.metadata.create_all(bind=engine)
-    admin_email = os.getenv("FIRST_SUPERUSER_EMAIL", "admin@banza.org")
-    admin_password = os.getenv("FIRST_SUPERUSER_PASSWORD", "SecureAdminPassword123!")
+    admin_email = os.getenv("FIRST_SUPERUSER_EMAIL")
+    admin_password = os.getenv("FIRST_SUPERUSER_PASSWORD")
 
     if not admin_email or not admin_password:
         logger.info("FIRST_SUPERUSER_EMAIL or FIRST_SUPERUSER_PASSWORD not set; skipping auto-init.")
