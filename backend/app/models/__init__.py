@@ -13,6 +13,7 @@ from backend.app.models.update import Update
 from backend.app.models.activity import Activity
 from backend.app.models.gallery import GalleryItem
 from backend.app.models.member import Member
+from backend.app.models.site_asset import SiteAsset
 
 __all__ = [
     "Base",
@@ -25,4 +26,5 @@ __all__ = [
     "Activity",
     "GalleryItem",
     "Member",
+    "SiteAsset",
 ]

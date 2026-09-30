@@ -281,6 +281,44 @@ export const en = {
   'notFound.title': 'Page Not Found',
   'notFound.desc': 'The page you are looking for might have been moved, renamed, or is temporarily unavailable.',
   'notFound.returnHome': '← Return to Home',
+
+  // Brand & Assets
+  'brand.logoAlt': 'Mahaveer Youth Club Banza official logo',
+  'brand.ganeshAlt': 'Mahaveer Youth Club Banza Ganesh Chaturthi {year}',
+  'brand.noLogo': 'Official logo not uploaded yet',
+  'brand.noGanesh': 'Current-year Ganesh image not uploaded yet',
+
+  // Home Page Assets & Showcase
+  'home.ganesh.badge': 'SRI GANESH PUJA {year}',
+  'home.ganesh.title': 'Annual Festival Darshan',
+  'home.ganesh.subtitle': 'Official devotional idol darshan and celebrations of Sri Ganesh Puja at Banza mandap.',
+  'home.ganesh.pending': 'Current-year Ganesh idol photograph will be displayed here once published by the committee.',
+
+  // Admin Assets Management
+  'admin.assets.title': 'Asset Management',
+  'admin.assets.subtitle': 'Manage official club brand assets and current-year Ganesh Puja festival photographs.',
+  'admin.assets.logo.title': 'Official Club Logo',
+  'admin.assets.logo.desc': 'The primary official logo displayed across the public header, navigation, and website footer.',
+  'admin.assets.logo.uploadBtn': 'Upload Official Logo',
+  'admin.assets.logo.replaceBtn': 'Replace Logo',
+  'admin.assets.logo.deleteBtn': 'Delete Logo',
+  'admin.assets.logo.none': 'No official logo uploaded yet. Text fallback is currently active.',
+  'admin.assets.logo.deleteConfirm': 'Are you sure you want to delete the official logo? The public site will immediately revert to the text brand fallback.',
+  'admin.assets.ganesh.title': 'Current-Year Ganesh Image',
+  'admin.assets.ganesh.desc': 'The official devotional photograph featured prominently on the homepage for the active festival year.',
+  'admin.assets.ganesh.yearLabel': 'Festival Year:',
+  'admin.assets.ganesh.uploadBtn': 'Upload Festival Image',
+  'admin.assets.ganesh.replaceBtn': 'Replace Image',
+  'admin.assets.ganesh.deleteBtn': 'Delete Image',
+  'admin.assets.ganesh.none': 'No current-year Ganesh image uploaded yet.',
+  'admin.assets.ganesh.deleteConfirm': 'Are you sure you want to delete the current-year Ganesh image?',
+  'admin.assets.fileSize': 'File Size: {size}',
+  'admin.assets.dimensions': 'Dimensions: {width} × {height} px',
+  'admin.assets.uploadSuccess': 'Asset updated and published successfully.',
+  'admin.assets.deleteSuccess': 'Asset deleted successfully.',
+  'admin.assets.cancel': 'Cancel',
+  'admin.assets.confirmDelete': 'Confirm Deletion',
 };
 
 export type TranslationKey = keyof typeof en;
+

@@ -9,6 +9,7 @@ from backend.app.models.update import Update
 from backend.app.models.activity import Activity
 from backend.app.models.gallery import GalleryItem
 from backend.app.models.member import Member
+from backend.app.models.site_asset import SiteAsset
 from backend.app.schemas.content import (
     PaginatedResponse,
     UpdatePublicResponse,
@@ -18,6 +19,7 @@ from backend.app.schemas.content import (
     GalleryCategoriesResponse,
     MemberPublicResponse,
 )
+from backend.app.schemas.asset import SiteAssetPublicResponse
 
 router = APIRouter()
 
@@ -275,3 +277,55 @@ def get_public_members(
         page_size=page_size,
         total_pages=total_pages,
     )
+
+
+# =============================================================================
+# 5. Public Managed Assets Endpoints
+# =============================================================================
+@router.get(
+    "/assets/logo",
+    response_model=SiteAssetPublicResponse,
+    summary="Get Active Official Logo",
+)
+def get_public_logo(db: Session = Depends(get_db)) -> SiteAssetPublicResponse:
+    """
+    Returns the currently active official club logo metadata.
+    Returns 404 if no logo has been uploaded.
+    """
+    asset = (
+        db.query(SiteAsset)
+        .filter(SiteAsset.asset_type == "LOGO", SiteAsset.is_active == True)
+        .order_by(desc(SiteAsset.created_at))
+        .first()
+    )
+    if not asset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Official logo not found or not uploaded yet.",
+        )
+    return SiteAssetPublicResponse.model_validate(asset)
+
+
+@router.get(
+    "/assets/ganesh/current",
+    response_model=SiteAssetPublicResponse,
+    summary="Get Active Current-Year Ganesh Image",
+)
+def get_public_current_ganesh(db: Session = Depends(get_db)) -> SiteAssetPublicResponse:
+    """
+    Returns the currently active current-year Ganesh Puja image metadata.
+    Returns 404 if no image has been uploaded for the current year.
+    """
+    asset = (
+        db.query(SiteAsset)
+        .filter(SiteAsset.asset_type == "GANESH_CURRENT", SiteAsset.is_active == True)
+        .order_by(desc(SiteAsset.created_at))
+        .first()
+    )
+    if not asset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Current-year Ganesh image not found or not uploaded yet.",
+        )
+    return SiteAssetPublicResponse.model_validate(asset)
+

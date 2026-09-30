@@ -152,3 +152,24 @@ export interface MemberReorderItem {
   id: number;
   sort_order: number;
 }
+
+// =============================================================================
+// Site Assets (Logo & Current-Year Ganesh Image)
+// =============================================================================
+export interface SiteAsset {
+  id: number;
+  asset_type: 'LOGO' | 'GANESH_CURRENT';
+  year?: number | null;
+  storage_path: string;
+  image_url: string;
+  original_filename?: string | null;
+  mime_type: string;
+  file_size: number;
+  width?: number | null;
+  height?: number | null;
+  is_active?: boolean;
+  created_by?: number | null;
+  created_at: string;
+  updated_at?: string | null;
+}
+

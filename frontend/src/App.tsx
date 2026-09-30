@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './admin/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { BrandProvider } from './context/BrandContext';
 import { ProtectedRoute } from './admin/ProtectedRoute';
 import { PublicLayout } from './layouts/PublicLayout';
 import { AdminLayout } from './layouts/AdminLayout';
@@ -25,6 +26,7 @@ import { AdminUpdatesPage } from './pages/admin/AdminUpdatesPage';
 import { AdminActivitiesPage } from './pages/admin/AdminActivitiesPage';
 import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 import { AdminMembersPage } from './pages/admin/AdminMembersPage';
+import { AdminAssetsPage } from './pages/admin/AdminAssetsPage';
 import { AdminSecurityPage } from './pages/admin/AdminSecurityPage';
 import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 
@@ -32,44 +34,47 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <LanguageProvider>
-        <AuthProvider>
-          <Routes>
-            {/* Public Application Shell Routes */}
-            <Route element={<PublicLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/members" element={<MembersPage />} />
-              <Route path="/celebrations" element={<CelebrationsPage />} />
-              <Route path="/activities" element={<ActivitiesPage />} />
-              <Route path="/updates" element={<UpdatesPage />} />
-              <Route path="/donate" element={<DonatePage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/404" element={<NotFoundPage />} />
-            </Route>
-
-            {/* Admin Login Route (Unprotected) */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-
-            {/* Protected Admin Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<AdminDashboardPage />} />
-                <Route path="/admin/updates" element={<AdminUpdatesPage />} />
-                <Route path="/admin/activities" element={<AdminActivitiesPage />} />
-                <Route path="/admin/gallery" element={<AdminGalleryPage />} />
-                <Route path="/admin/members" element={<AdminMembersPage />} />
-                <Route path="/admin/security" element={<AdminSecurityPage />} />
-                <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
+        <BrandProvider>
+          <AuthProvider>
+            <Routes>
+              {/* Public Application Shell Routes */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/members" element={<MembersPage />} />
+                <Route path="/celebrations" element={<CelebrationsPage />} />
+                <Route path="/activities" element={<ActivitiesPage />} />
+                <Route path="/updates" element={<UpdatesPage />} />
+                <Route path="/donate" element={<DonatePage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/404" element={<NotFoundPage />} />
               </Route>
-            </Route>
 
-            {/* Catch-all 404 Route */}
-            <Route element={<PublicLayout />}>
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
-        </AuthProvider>
+              {/* Admin Login Route (Unprotected) */}
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+
+              {/* Protected Admin Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AdminLayout />}>
+                  <Route path="/admin" element={<AdminDashboardPage />} />
+                  <Route path="/admin/assets" element={<AdminAssetsPage />} />
+                  <Route path="/admin/updates" element={<AdminUpdatesPage />} />
+                  <Route path="/admin/activities" element={<AdminActivitiesPage />} />
+                  <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+                  <Route path="/admin/members" element={<AdminMembersPage />} />
+                  <Route path="/admin/security" element={<AdminSecurityPage />} />
+                  <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
+                </Route>
+              </Route>
+
+              {/* Catch-all 404 Route */}
+              <Route element={<PublicLayout />}>
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
+            </Routes>
+          </AuthProvider>
+        </BrandProvider>
       </LanguageProvider>
     </BrowserRouter>
   );

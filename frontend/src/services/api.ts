@@ -17,7 +17,9 @@ import {
   MemberUpdatePayload,
   MemberReorderItem,
   ContentStatus,
+  SiteAsset,
 } from '../types';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
@@ -531,4 +533,69 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
   },
+
+  // ===========================================================================
+  // Site Assets (Official Logo & Current-Year Ganesh Image)
+  // ===========================================================================
+  getPublicLogo: async (): Promise<SiteAsset> => {
+    return request<SiteAsset>('/public/assets/logo', { method: 'GET' });
+  },
+
+  getPublicCurrentGanesh: async (): Promise<SiteAsset> => {
+    return request<SiteAsset>('/public/assets/ganesh/current', { method: 'GET' });
+  },
+
+  getAdminLogo: async (token: string): Promise<SiteAsset> => {
+    return request<SiteAsset>('/admin/assets/logo', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  uploadAdminLogo: async (token: string, file: File): Promise<SiteAsset> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<SiteAsset>('/admin/assets/logo', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
+
+  deleteAdminLogo: async (token: string): Promise<{ message: string }> => {
+    return request<{ message: string }>('/admin/assets/logo', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  getAdminCurrentGanesh: async (token: string): Promise<SiteAsset> => {
+    return request<SiteAsset>('/admin/assets/ganesh/current', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  uploadAdminCurrentGanesh: async (
+    token: string,
+    file: File,
+    year: number
+  ): Promise<SiteAsset> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('year', year.toString());
+    return request<SiteAsset>('/admin/assets/ganesh/current', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
+
+  deleteAdminCurrentGanesh: async (token: string): Promise<{ message: string }> => {
+    return request<{ message: string }>('/admin/assets/ganesh/current', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
 };
+

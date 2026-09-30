@@ -15,6 +15,7 @@ export const AdminLayout: React.FC = () => {
 
   const navLinks = [
     { name: 'Dashboard', path: '/admin', end: true },
+    { name: 'Assets', path: '/admin/assets' },
     { name: 'Updates', path: '/admin/updates' },
     { name: 'Activities', path: '/admin/activities' },
     { name: 'Gallery', path: '/admin/gallery' },

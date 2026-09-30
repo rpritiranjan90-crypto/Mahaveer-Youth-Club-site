@@ -149,6 +149,46 @@ class StorageService:
         return image_url, thumbnail_url
 
     @staticmethod
+    def save_site_asset(
+        file_bytes: bytes,
+        content_type: Optional[str] = None,
+        subfolder: str = "assets",
+    ) -> Tuple[str, str, int, Optional[int], Optional[int]]:
+        """
+        Validates, saves a managed brand/site asset (Logo, Ganesh image), and extracts dimensions.
+        Returns (storage_path, detected_mime, file_size, width, height).
+        """
+        detected_mime, ext = validate_image_file(file_bytes, content_type)
+
+        upload_root = get_upload_dir()
+        target_dir = (upload_root / subfolder).resolve()
+
+        if not str(target_dir).startswith(str(upload_root)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid upload destination.",
+            )
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        file_id = uuid.uuid4().hex
+        main_filename = f"{file_id}{ext}"
+        main_path = target_dir / main_filename
+
+        with open(main_path, "wb") as f:
+            f.write(file_bytes)
+
+        width: Optional[int] = None
+        height: Optional[int] = None
+        try:
+            with Image.open(io.BytesIO(file_bytes)) as img:
+                width, height = img.size
+        except Exception as e:
+            logger.warning("Could not extract image dimensions: %s", str(e))
+
+        storage_path = f"/uploads/{subfolder}/{main_filename}"
+        return storage_path, detected_mime, len(file_bytes), width, height
+
+    @staticmethod
     def delete_file(file_url: Optional[str]) -> bool:
         """
         Deletes a previously uploaded file safely given its URL path.

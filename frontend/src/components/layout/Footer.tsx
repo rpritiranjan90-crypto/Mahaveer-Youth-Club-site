@@ -2,9 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container } from './Container';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBrand } from '../../context/BrandContext';
 
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
+  const { logo } = useBrand();
+  const [logoImageError, setLogoImageError] = React.useState(false);
 
   return (
     <footer className="bg-stone-900 text-stone-300 mt-auto border-t border-stone-800 text-left">
@@ -13,12 +16,21 @@ export const Footer: React.FC = () => {
           {/* 1. Organization Information */}
           <div className="space-y-3 md:col-span-2">
             <div className="flex items-center space-x-3">
-              <span
-                className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-base shadow-sm"
-                aria-hidden="true"
-              >
-                MYC
-              </span>
+              {logo && !logoImageError ? (
+                <img
+                  src={`${logo.image_url}?v=${new Date(logo.updated_at || logo.created_at).getTime()}`}
+                  alt={t('brand.logoAlt')}
+                  onError={() => setLogoImageError(true)}
+                  className="w-10 h-10 object-contain rounded-lg shadow-sm"
+                />
+              ) : (
+                <span
+                  className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-base shadow-sm"
+                  aria-hidden="true"
+                >
+                  MYC
+                </span>
+              )}
               <div>
                 <span className="text-white font-bold text-lg tracking-tight block">
                   {t('footer.aboutTitle')}

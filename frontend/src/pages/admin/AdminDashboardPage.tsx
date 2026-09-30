@@ -81,9 +81,24 @@ export const AdminDashboardPage: React.FC = () => {
       {/* 1. CMS Content Overview Metrics Grid */}
       <div>
         <h2 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">
-          Content Management Overview
+          Content & Asset Management Overview
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Assets & Brand Card */}
+          <Card className="p-5 bg-white border border-stone-200 hover:border-orange-300 hover:shadow-xs transition-all space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-stone-500 uppercase">Logo & Ganesh</span>
+              <span className="text-xl">🎨</span>
+            </div>
+            <div className="text-sm font-bold text-stone-900">
+              Active Assets
+            </div>
+            <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+              <Link to="/admin/assets" className="text-xs font-semibold text-orange-600 hover:text-orange-700">
+                Manage Assets →
+              </Link>
+            </div>
+          </Card>
           {/* Updates Card */}
           <Card className="p-5 bg-white border border-stone-200 hover:border-orange-300 hover:shadow-xs transition-all space-y-2">
             <div className="flex items-center justify-between">

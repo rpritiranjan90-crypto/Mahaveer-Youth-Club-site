@@ -283,4 +283,42 @@ export const or: Record<TranslationKey, string> = {
   'notFound.title': 'ପୃଷ୍ଠା ମିଳିଲା ନାହିଁ',
   'notFound.desc': 'ଆପଣ ଖୋଜୁଥିବା ପୃଷ୍ଠାଟି ସ୍ଥାନାନ୍ତରିତ ହୋଇଛି କିମ୍ବା ବର୍ତ୍ତମାନ ଉପଲବ୍ଧ ନାହିଁ।',
   'notFound.returnHome': '← ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ',
+
+  // Brand & Assets
+  'brand.logoAlt': 'Mahaveer Youth Club Banza ଅଫିସିଆଲ୍ ଲୋଗୋ',
+  'brand.ganeshAlt': 'Mahaveer Youth Club Banza ଗଣେଶ ଚତୁର୍ଥୀ {year}',
+  'brand.noLogo': 'ଅଫିସିଆଲ୍ ଲୋଗୋ ଏପର୍ଯ୍ୟନ୍ତ ଅପଲୋଡ୍ ହୋଇନାହିଁ',
+  'brand.noGanesh': 'ଚଳିତ ବର୍ଷର ଗଣେଶ ଫଟୋ ଏପର୍ଯ୍ୟନ୍ତ ଅପଲୋଡ୍ ହୋଇନାହିଁ',
+
+  // Home Page Assets & Showcase
+  'home.ganesh.badge': 'ଶ୍ରୀ ଗଣେଶ ପୂଜା {year}',
+  'home.ganesh.title': 'ବାର୍ଷିକ ଉତ୍ସବ ଦର୍ଶନ',
+  'home.ganesh.subtitle': 'ବାଞ୍ଜା ମଣ୍ଡପରେ ଶ୍ରୀ ଗଣେଶ ପୂଜା ମହୋତ୍ସବ ଏବଂ ଭକ୍ତିପୂର୍ଣ୍ଣ ଦର୍ଶନ।',
+  'home.ganesh.pending': 'କମିଟି ଦ୍ୱାରା ପ୍ରକାଶିତ ହେବା ପରେ ଚଳିତ ବର୍ଷର ମୂର୍ତ୍ତି ଫଟୋ ଏଠାରେ ପ୍ରଦର୍ଶିତ ହେବ।',
+
+  // Admin Assets Management
+  'admin.assets.title': 'ସମ୍ପତ୍ତି ପରିଚାଳନା (Asset Management)',
+  'admin.assets.subtitle': 'କ୍ଲବ୍ ଅଫିସିଆଲ୍ ଲୋଗୋ ଏବଂ ଚଳିତ ବର୍ଷର ଗଣେଶ ପୂଜା ଫଟୋ ପରିଚାଳନା କରନ୍ତୁ।',
+  'admin.assets.logo.title': 'ଅଫିସିଆଲ୍ କ୍ଲବ୍ ଲୋଗୋ',
+  'admin.assets.logo.desc': 'ମୁଖ୍ୟ ହେଡର୍, ନେଭିଗେସନ୍ ଏବଂ ଫୁଟରରେ ବ୍ୟବହୃତ ହେଉଥିବା ପ୍ରମୁଖ ଲୋଗୋ।',
+  'admin.assets.logo.uploadBtn': 'ଅଫିସିଆଲ୍ ଲୋଗୋ ଅପଲୋଡ୍ କରନ୍ତୁ',
+  'admin.assets.logo.replaceBtn': 'ଲୋଗୋ ପରିବର୍ତ୍ତନ କରନ୍ତୁ',
+  'admin.assets.logo.deleteBtn': 'ଲୋଗୋ ହଟାନ୍ତୁ',
+  'admin.assets.logo.none': 'କୌଣସି ଅଫିସିଆଲ୍ ଲୋଗୋ ଅପଲୋଡ୍ ହୋଇନାହିଁ। ଟେକ୍ସଟ୍ ଫଲ୍‌ବ୍ୟାକ୍ ସକ୍ରିୟ ଅଛି।',
+  'admin.assets.logo.deleteConfirm': 'ଆପଣ ନିଶ୍ଚିତ କି ଏହି ଲୋଗୋ ହଟାଇବାକୁ ଚାହାଁନ୍ତି? ୱେବସାଇଟ୍ ତୁରନ୍ତ ଟେକ୍ସଟ୍ ବ୍ରାଣ୍ଡକୁ ଫେରିବ।',
+  'admin.assets.ganesh.title': 'ଚଳିତ ବର୍ଷର ଗଣେଶ ଫଟୋ',
+  'admin.assets.ganesh.desc': 'ମୁଖ୍ୟ ପୃଷ୍ଠାରେ ପ୍ରଦର୍ଶିତ ହେଉଥିବା ସମ୍ପ୍ରତି ଉତ୍ସବ ବର୍ଷର ଅଫିସିଆଲ୍ ଭକ୍ତିପୂର୍ଣ୍ଣ ଫଟୋ।',
+  'admin.assets.ganesh.yearLabel': 'ଉତ୍ସବ ବର୍ଷ:',
+  'admin.assets.ganesh.uploadBtn': 'ଉତ୍ସବ ଫଟୋ ଅପଲୋଡ୍ କରନ୍ତୁ',
+  'admin.assets.ganesh.replaceBtn': 'ଫଟୋ ପରିବର୍ତ୍ତନ କରନ୍ତୁ',
+  'admin.assets.ganesh.deleteBtn': 'ଫଟୋ ହଟାନ୍ତୁ',
+  'admin.assets.ganesh.none': 'ଚଳିତ ବର୍ଷର କୌଣସି ଗଣେଶ ଫଟୋ ଅପଲୋଡ୍ ହୋଇନାହିଁ।',
+  'admin.assets.ganesh.deleteConfirm': 'ଆପଣ ନିଶ୍ଚିତ କି ଚଳିତ ବର୍ଷର ଗଣେଶ ଫଟୋ ହଟାଇବାକୁ ଚାହାଁନ୍ତି?',
+  'admin.assets.fileSize': 'ଫାଇଲ୍ ସାଇଜ୍: {size}',
+  'admin.assets.dimensions': 'ଆକାର: {width} × {height} px',
+  'admin.assets.uploadSuccess': 'ସଫଳତାର ସହିତ ପ୍ରକାଶିତ ହେଲା।',
+  'admin.assets.deleteSuccess': 'ସଫଳତାର ସହିତ ହଟାଗଲା।',
+  'admin.assets.cancel': 'ବାତିଲ୍ କରନ୍ତୁ',
+  'admin.assets.confirmDelete': 'ହଟାଇବା ନିଶ୍ଚିତ କରନ୍ତୁ',
 };
+

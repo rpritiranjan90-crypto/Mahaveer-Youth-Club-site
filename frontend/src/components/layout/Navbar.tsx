@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Container } from './Container';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBrand } from '../../context/BrandContext';
 
 export interface NavItemConfig {
   key: string;
@@ -22,7 +23,9 @@ export const NAV_ITEMS: NavItemConfig[] = [
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [logoImageError, setLogoImageError] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const { logo } = useBrand();
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
@@ -45,12 +48,21 @@ export const Navbar: React.FC = () => {
             onClick={closeMenu}
             className="flex items-center space-x-3 group focus-visible:outline-hidden"
           >
-            <span
-              className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-orange-700 transition-colors"
-              aria-hidden="true"
-            >
-              MYC
-            </span>
+            {logo && !logoImageError ? (
+              <img
+                src={`${logo.image_url}?v=${new Date(logo.updated_at || logo.created_at).getTime()}`}
+                alt={t('brand.logoAlt')}
+                onError={() => setLogoImageError(true)}
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-lg shadow-2xs group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <span
+                className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-orange-700 transition-colors"
+                aria-hidden="true"
+              >
+                MYC
+              </span>
+            )}
             <div className="flex flex-col text-left">
               <span className="font-bold text-base sm:text-lg text-stone-900 leading-tight">
                 {t('nav.brandName')}

@@ -47,6 +47,10 @@ from backend.app.schemas.content import (
     MemberAdminResponse,
     MemberPublicResponse,
 )
+from backend.app.schemas.asset import (
+    SiteAssetPublicResponse,
+    SiteAssetAdminResponse,
+)
 
 __all__ = [
     "HealthResponse",
@@ -89,4 +93,6 @@ __all__ = [
     "MemberReorderRequest",
     "MemberAdminResponse",
     "MemberPublicResponse",
+    "SiteAssetPublicResponse",
+    "SiteAssetAdminResponse",
 ]

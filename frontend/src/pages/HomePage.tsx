@@ -10,12 +10,15 @@ import { CTASection } from '../components/content/CTASection';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
+import { useBrand } from '../context/BrandContext';
 import { apiService } from '../services/api';
 import { HealthStatus } from '../types';
 
 export const HomePage: React.FC = () => {
   const { t } = useLanguage();
+  const { currentGanesh } = useBrand();
   const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
+
 
   usePageMeta({
     title: 'Mahaveer Youth Club Banza — Community, Culture, Celebration',
@@ -104,7 +107,29 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:col-span-5 reveal-on-scroll stagger-2">
+            <div className="lg:col-span-5 reveal-on-scroll stagger-2 space-y-4">
+              {/* Current-Year Ganesh Festival Image Showcase */}
+              {currentGanesh && (
+                <Card interactive className="overflow-hidden bg-white border border-stone-200 shadow-soft">
+                  <div className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center justify-between">
+                    <Badge variant="saffron">
+                      {t('home.ganesh.badge', { year: currentGanesh.year || 2026 })}
+                    </Badge>
+                    <span className="text-[11px] font-bold text-orange-800 uppercase tracking-wider">
+                      Mandap Darshan
+                    </span>
+                  </div>
+                  <div className="aspect-4/3 overflow-hidden bg-stone-100">
+                    <img
+                      src={`${currentGanesh.image_url}?v=${new Date(currentGanesh.updated_at || currentGanesh.created_at).getTime()}`}
+                      alt={t('brand.ganeshAlt', { year: currentGanesh.year || 2026 })}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </Card>
+              )}
+
               <Card interactive className="p-6 sm:p-8 bg-white border border-stone-200 shadow-soft space-y-4">
                 <div className="flex items-center space-x-3 border-b border-stone-100 pb-4">
                   <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-lg select-none">
