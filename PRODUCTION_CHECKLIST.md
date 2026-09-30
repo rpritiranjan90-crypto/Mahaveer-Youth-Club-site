@@ -35,7 +35,7 @@
 - [x] **24. Robots Policy Verified**: [`frontend/public/robots.txt`](file:///c:/Users/rprit/Documents/MAHAVEER%20YOUTH%20CLUB%20SITE/frontend/public/robots.txt) permits public routes and disallows `/admin/` and `/api/`.
 - [x] **25. Accessibility Verified**: Semantic HTML5 hierarchy, skip-to-content link, keyboard navigation, dynamic `<html lang="...">` sync, and image alt text.
 - [x] **26. Mobile Responsiveness Verified**: Tested across 360px, 390px, 412px, 768px, 1024px, 1280px without horizontal overflow.
-- [x] **27. Backend Tests Passed**: 38 / 38 pytest unit and integration tests passing (100%).
+- [x] **27. Backend Tests Passed**: 46 / 46 pytest unit and integration tests passing (100%).
 - [x] **28. Frontend Type Check Passed**: `tsc -b` completes with 0 errors.
 - [x] **29. Frontend Build Passed**: `npm run build` generates clean production distribution bundle.
 - [x] **30. E2E Acceptance Passed**: Automated Phase 5 verification suite ([`test_phase5_experience.py`](file:///c:/Users/rprit/Documents/MAHAVEER%20YOUTH%20CLUB%20SITE/test_phase5_experience.py)) passes 100%.

@@ -26,3 +26,16 @@ def test_cors_headers_configured(client):
     )
     assert response.status_code == 200
     assert "access-control-allow-origin" in response.headers
+
+
+def test_security_headers_middleware(client):
+    """
+    Verify standard HTTP security headers are set by SecurityHeadersMiddleware.
+    """
+    response = client.get("/api/v1/health")
+    assert response.status_code == 200
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["x-xss-protection"] == "1; mode=block"
+

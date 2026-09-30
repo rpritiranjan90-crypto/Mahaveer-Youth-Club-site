@@ -18,7 +18,7 @@ Mahaveer Youth Club Banza V2 has successfully completed all six engineering phas
 5. **Phase 5 — Public UX + Odia + Donation:** Bilingual English/Odia localization (257 keys, 100% parity), simplified donation guide, streamlined contact channels, and SEO.
 6. **Phase 6 — Production QA, Security & Release:** Exhaustive audit across 30+ dimensions, database backup/restore procedures, Nginx/systemd deployment architecture, and automated test verification.
 
-All **45 backend automated tests pass (100%)**, TypeScript compilation reports **0 errors**, and the frontend builds into an optimized **436 KB production bundle** in 1.75s.
+All **46 backend automated tests pass (100%)**, TypeScript compilation reports **0 errors**, and the frontend builds into an optimized **436 KB production bundle** in 1.73s.
 
 ---
 
@@ -74,7 +74,8 @@ The architecture is intentionally simple, robust, monolithic, and inexpensive to
 - **Input Validation:** Strict Pydantic models for all API request bodies.
 - **SQL Injection:** Zero raw SQL queries; all queries execute via SQLAlchemy parameterized ORM statements.
 - **Secrets:** Isolated in environment variables; zero credentials in Git repository.
-- **Security Headers:** `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-XSS-Protection: 1; mode=block`.
+- **Application Security Headers (Active & Tested):** `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-XSS-Protection: 1; mode=block` enforced on all backend responses.
+- **Production HTTPS Headers (Nginx Proxy Layer):** `Strict-Transport-Security` (HSTS) and `Content-Security-Policy` (CSP) configured on port 443 in `DEPLOYMENT.md` for HTTPS deployment (intentionally omitted in local HTTP development to prevent local browser errors).
 - **CORS:** Restricted to explicit origins configured in `CORS_ORIGINS`.
 
 ---
@@ -82,8 +83,8 @@ The architecture is intentionally simple, robust, monolithic, and inexpensive to
 ## 5. Authentication Audit
 
 - **Password Hashing:** Argon2id with memory-hard cost parameters.
-- **Access Tokens:** Signed JWTs with 15-minute expiration (`ACCESS_TOKEN_EXPIRE_MINUTES = 15`).
-- **Refresh Tokens:** Random cryptographically secure tokens stored as SHA-256 hashes in database with 7-day expiration.
+- **Access Tokens:** Signed JWTs with 15-minute expiration (`ACCESS_TOKEN_EXPIRE_MINUTES = 15`). Stored in browser `sessionStorage` (`myc_admin_access_token`) and React state.
+- **Refresh Tokens:** High-entropy random tokens stored server-side in the PostgreSQL database as SHA-256 hashes with 7-day expiration.
 - **Account Protection:** Deactivated accounts (`is_active = False`) are blocked from authentication immediately.
 - **Timing Attack Resistance:** Constant-time hash verification.
 
@@ -155,7 +156,7 @@ The architecture is intentionally simple, robust, monolithic, and inexpensive to
 ## 13. Frontend Security
 
 - **Content Rendering:** React automatically escapes untrusted content inside JSX expressions.
-- **Token Storage:** Access token held in React memory/state; refresh token stored in secure cookie or local storage with immediate purge on logout.
+- **Token Storage:** Access token is stored in browser `sessionStorage` under `myc_admin_access_token` and held in React memory (`useState`). Refresh tokens are stored server-side in the PostgreSQL database as SHA-256 hashes with 7-day expiration. On logout, `sessionStorage` is cleared and active memory state is reset to null.
 - **XSS Protection:** Dangerous HTML insertion (`dangerouslySetInnerHTML`) is avoided; rich-text is sanitized on backend before database storage.
 - **Open Redirects:** All frontend navigation utilizes relative route paths.
 
@@ -247,7 +248,7 @@ Verified responsive layouts across all standard viewport sizes:
 
 ```text
 COMMAND: python -m pytest -v
-RESULT: 45 passed in 18.12s
+RESULT: 46 passed in 18.20s
 STATUS: PASS
 ```
 
@@ -256,7 +257,7 @@ STATUS: PASS
 - `backend/tests/test_audit.py` — 2 passed
 - `backend/tests/test_auth.py` — 16 passed
 - `backend/tests/test_config.py` — 1 passed
-- `backend/tests/test_errors.py` — 2 passed
+- `backend/tests/test_errors.py` — 3 passed (including SecurityHeadersMiddleware verification)
 - `backend/tests/test_gallery.py` — 3 passed
 - `backend/tests/test_health.py` — 3 passed
 - `backend/tests/test_members.py` — 2 passed
@@ -366,7 +367,7 @@ Summary of deployment steps (detailed in [`docs/DEPLOYMENT.md`](file:///c:/Users
 - [x] Authorization verified on all admin and public endpoints
 - [x] Rate limiting verified at application and proxy layers
 - [x] CORS verified with explicit whitelist
-- [x] Security headers verified (CSP, HSTS, X-Frame-Options)
+- [x] Security headers verified (Application: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, X-XSS-Protection; Nginx HTTPS: CSP, HSTS)
 - [x] Error handling verified with sanitized JSON responses
 - [x] Audit logs verified with immutable action tracking
 - [x] Public/private content separation verified (Draft/Archive isolation)
@@ -379,9 +380,9 @@ Summary of deployment steps (detailed in [`docs/DEPLOYMENT.md`](file:///c:/Users
 - [x] Robots verified ([`frontend/public/robots.txt`](file:///c:/Users/rprit/Documents/MAHAVEER%20YOUTH%20CLUB%20SITE/frontend/public/robots.txt))
 - [x] Accessibility verified (WCAG 2.1 AA, keyboard navigation)
 - [x] Mobile responsiveness verified across 360px–1280px viewports
-- [x] Backend tests passed (45 / 45 passed, 100%)
+- [x] Backend tests passed (46 / 46 passed, 100%)
 - [x] Frontend type check passed (`tsc -b`, 0 errors)
-- [x] Frontend build passed (`npm run build`, 1.75s)
+- [x] Frontend build passed (`npm run build`, 1.73s)
 - [x] E2E acceptance passed
 - [x] Deployment procedure documented ([`docs/DEPLOYMENT.md`](file:///c:/Users/rprit/Documents/MAHAVEER%20YOUTH%20CLUB%20SITE/docs/DEPLOYMENT.md))
 - [x] Rollback procedure documented ([`docs/DEPLOYMENT.md`](file:///c:/Users/rprit/Documents/MAHAVEER%20YOUTH%20CLUB%20SITE/docs/DEPLOYMENT.md))
