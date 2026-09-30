@@ -104,13 +104,15 @@ export const DonatePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* QR Code Placeholder Box */}
-                <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-stone-50 rounded-xl border-2 border-dashed border-stone-300 text-center space-y-3">
-                  <div className="w-44 h-44 bg-stone-200 rounded-lg flex flex-col items-center justify-center p-3 text-stone-600 text-xs text-center border border-stone-300 shadow-2xs">
-                    <span className="text-3xl mb-2 select-none" aria-hidden="true">📷</span>
-                    <span className="font-semibold text-stone-700">
-                      {t('donate.upi.qrPlaceholder')}
-                    </span>
+                {/* Official QR Code Box */}
+                <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-stone-50 rounded-xl border border-stone-200 text-center space-y-3">
+                  <div className="p-3 bg-white rounded-xl border border-stone-200 shadow-xs flex items-center justify-center">
+                    <img
+                      src="/images/official_upi_qr.png"
+                      alt="Mahaveer Youth Club Banza Official UPI QR Code"
+                      className="w-44 h-44 sm:w-48 sm:h-48 object-contain rounded-lg"
+                      loading="lazy"
+                    />
                   </div>
                   <span className="text-xs text-stone-500 leading-normal max-w-xs">
                     {t('donate.upi.scanInstructions')}

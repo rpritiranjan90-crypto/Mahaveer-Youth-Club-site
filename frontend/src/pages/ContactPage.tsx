@@ -62,13 +62,13 @@ export const ContactPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-200 text-xs font-mono text-stone-700 text-center select-all">
-                    [OFFICIAL PHONE NUMBER — TO BE PROVIDED]
+                    +91 9337310332
                   </div>
                 </div>
                 <div className="pt-4">
                   {/* Call Action Button */}
                   <a
-                    href="tel:910000000000"
+                    href="tel:9337310332"
                     className="inline-flex items-center justify-center w-full px-3 py-2 text-xs font-semibold rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors shadow-2xs"
                   >
                     📞 {t('contact.call.btn')}
@@ -91,13 +91,13 @@ export const ContactPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-200 text-xs font-mono text-stone-700 text-center select-all">
-                    [OFFICIAL WHATSAPP NUMBER — TO BE PROVIDED]
+                    +91 9337310332
                   </div>
                 </div>
                 <div className="pt-4">
                   {/* WhatsApp Action Button - without prefilled message */}
                   <a
-                    href="https://wa.me/910000000000"
+                    href="https://wa.me/919337310332"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-2xs"
@@ -122,13 +122,13 @@ export const ContactPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-200 text-xs font-mono text-stone-700 text-center select-all">
-                    Banza Village, Odisha
+                    Banza, Jajpur, Odisha
                   </div>
                 </div>
                 <div className="pt-4">
                   {/* Google Maps Directions Action Button */}
                   <a
-                    href="https://maps.google.com/?q=Banza+Odisha"
+                    href="https://maps.app.goo.gl/2j6DYPzNLEagMvNR8"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-3 py-2 text-xs font-semibold rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow-2xs"
@@ -153,12 +153,12 @@ export const ContactPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-200 text-xs font-mono text-stone-700 text-center select-all">
-                    [OFFICIAL INSTAGRAM — TO BE PROVIDED]
+                    @mahaveer_youth_club_banza
                   </div>
                 </div>
                 <div className="pt-4">
                   <a
-                    href="https://instagram.com"
+                    href="https://www.instagram.com/mahaveer_youth_club_banza"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-3 py-2 text-xs font-semibold rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors"
@@ -183,12 +183,12 @@ export const ContactPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-200 text-xs font-mono text-stone-700 text-center select-all">
-                    [OFFICIAL YOUTUBE — TO BE PROVIDED]
+                    @mahaveer_youthclub
                   </div>
                 </div>
                 <div className="pt-4">
                   <a
-                    href="https://youtube.com"
+                    href="https://youtube.com/@mahaveer_youthclub"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-3 py-2 text-xs font-semibold rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors"
@@ -213,7 +213,7 @@ export const ContactPage: React.FC = () => {
                     </p>
                   </div>
                   <p className="text-xs text-stone-600 font-mono">
-                    [OFFICIAL ADDRESS — TO BE PROVIDED]
+                    Mahaveer Youth Club Banza, Banza, Jajpur, Odisha, India
                   </p>
                 </div>
                 <div className="pt-4 text-[11px] text-stone-500">

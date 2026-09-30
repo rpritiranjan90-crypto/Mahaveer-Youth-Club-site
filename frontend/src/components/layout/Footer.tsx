@@ -32,7 +32,7 @@ export const Footer: React.FC = () => {
               {t('footer.aboutText')}
             </p>
             <div className="pt-1 text-xs text-stone-500 font-mono">
-              [OFFICIAL ADDRESS — TO BE PROVIDED]
+              Mahaveer Youth Club Banza, Banza, Jajpur, Odisha, India
             </div>
           </div>
 

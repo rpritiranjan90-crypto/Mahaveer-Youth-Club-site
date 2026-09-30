@@ -115,11 +115,11 @@ def test_phase2():
     donate_path = os.path.join(pages_dir, "DonatePage.tsx")
     with open(donate_path, "r", encoding="utf-8") as f:
         donate_content = f.read()
-        assert "[OFFICIAL UPI QR — TO BE PROVIDED]" in donate_content or "[OFFICIAL UPI QR — TO BE PROVIDED]" in locales_content
-        assert "[OFFICIAL UPI ID — TO BE PROVIDED]" in donate_content or "[OFFICIAL UPI ID — TO BE PROVIDED]" in locales_content
+        assert "9348699487-2@axl" in locales_content or "9348699487-2@axl" in donate_content
+        assert "official_upi_qr.png" in donate_content
         assert "Cash donations should be handed directly to authorized club seniors at the pandal." in locales_content
         assert "Please verify the recipient name shown in your UPI app before completing the payment." in locales_content
-    print("[PASS] Donate Page: Verified UPI QR/ID placeholders, cash guidance, and recipient warning.")
+    print("[PASS] Donate Page: Verified official UPI ID, official QR image, cash guidance, and recipient warning.")
 
     # 4f. Check Contact Page Placeholders
     contact_path = os.path.join(pages_dir, "ContactPage.tsx")

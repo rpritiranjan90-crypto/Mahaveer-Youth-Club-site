@@ -97,7 +97,7 @@ def test_contact_simplification():
     assert "https://wa.me/" in content, "Missing wa.me/ WhatsApp link"
     # WhatsApp must not have prefilled text parameter like ?text=...
     assert "?text=" not in content, "WhatsApp link must not have prefilled text"
-    assert "maps.google.com" in content or "google.com/maps" in content, "Missing Google Maps link"
+    assert "maps.google.com" in content or "google.com/maps" in content or "maps.app.goo.gl" in content, "Missing Google Maps link"
     assert "instagram.com" in content, "Missing Instagram link"
     assert "youtube.com" in content, "Missing YouTube link"
 
