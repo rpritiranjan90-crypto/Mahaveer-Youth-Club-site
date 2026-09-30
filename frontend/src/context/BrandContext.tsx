@@ -27,6 +27,21 @@ const DEFAULT_LOGO: SiteAsset = {
   created_at: '2026-09-30T00:00:00Z',
 };
 
+const DEFAULT_GANESH: SiteAsset = {
+  id: 2,
+  asset_type: 'GANESH_CURRENT',
+  year: 2026,
+  image_url: '/images/current_ganesh_2026.jpg',
+  storage_path: '/images/current_ganesh_2026.jpg',
+  original_filename: 'current_ganesh_2026.jpg',
+  mime_type: 'image/jpeg',
+  file_size: 406460,
+  width: 768,
+  height: 1024,
+  is_active: true,
+  created_at: '2026-09-30T00:00:00Z',
+};
+
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
 
 export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -34,7 +49,7 @@ export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [logoLoading, setLogoLoading] = useState<boolean>(true);
   const [logoError, setLogoError] = useState<boolean>(false);
 
-  const [currentGanesh, setCurrentGanesh] = useState<SiteAsset | null>(null);
+  const [currentGanesh, setCurrentGanesh] = useState<SiteAsset | null>(DEFAULT_GANESH);
   const [ganeshLoading, setGaneshLoading] = useState<boolean>(true);
   const [ganeshError, setGaneshError] = useState<boolean>(false);
 
@@ -58,10 +73,10 @@ export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setGaneshError(false);
     try {
       const data = await apiService.getPublicCurrentGanesh();
-      setCurrentGanesh(data);
+      setCurrentGanesh(data || DEFAULT_GANESH);
     } catch {
-      setCurrentGanesh(null);
-      setGaneshError(true);
+      setCurrentGanesh(DEFAULT_GANESH);
+      setGaneshError(false);
     } finally {
       setGaneshLoading(false);
     }

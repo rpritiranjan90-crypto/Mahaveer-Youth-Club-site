@@ -110,8 +110,8 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-5 reveal-on-scroll stagger-2 space-y-4">
               {/* Current-Year Ganesh Festival Image Showcase */}
               {currentGanesh && (
-                <Card interactive className="overflow-hidden bg-white border border-stone-200 shadow-soft">
-                  <div className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center justify-between">
+                <Card interactive className="overflow-hidden bg-white border border-orange-200/80 shadow-soft">
+                  <div className="p-3 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-b border-orange-100 flex items-center justify-between">
                     <Badge variant="saffron">
                       {t('home.ganesh.badge', { year: currentGanesh.year || 2026 })}
                     </Badge>
@@ -119,11 +119,11 @@ export const HomePage: React.FC = () => {
                       Mandap Darshan
                     </span>
                   </div>
-                  <div className="aspect-4/3 overflow-hidden bg-stone-100">
+                  <div className="aspect-3/4 sm:aspect-4/5 max-h-[460px] overflow-hidden bg-stone-900 flex items-center justify-center">
                     <img
-                      src={`${currentGanesh.image_url}?v=${new Date(currentGanesh.updated_at || currentGanesh.created_at).getTime()}`}
+                      src={`${currentGanesh.image_url}${currentGanesh.updated_at ? `?v=${new Date(currentGanesh.updated_at).getTime()}` : ''}`}
                       alt={t('brand.ganeshAlt', { year: currentGanesh.year || 2026 })}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
                   </div>
