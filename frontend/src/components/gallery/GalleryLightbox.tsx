@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { GalleryPhoto } from '../../types';
 
 export interface GalleryLightboxProps {
@@ -15,6 +15,7 @@ export const GalleryLightbox: React.FC<GalleryLightboxProps> = ({
   onSelectPhoto,
 }) => {
   const currentIndex = photo ? photos.findIndex((p) => p.id === photo.id) : -1;
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
@@ -31,6 +32,24 @@ export const GalleryLightbox: React.FC<GalleryLightboxProps> = ({
       onSelectPhoto(photos[0]);
     }
   }, [currentIndex, photos, onSelectPhoto]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        handleNext(); // swipe left -> next
+      } else {
+        handlePrev(); // swipe right -> prev
+      }
+    }
+    setTouchStartX(null);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,10 +73,12 @@ export const GalleryLightbox: React.FC<GalleryLightboxProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 sm:p-6 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 sm:p-6 backdrop-blur-xs animate-in fade-in duration-200 select-none"
       role="dialog"
       aria-modal="true"
       aria-label={`Photo viewer: ${photo.title}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Backdrop click */}
       <button

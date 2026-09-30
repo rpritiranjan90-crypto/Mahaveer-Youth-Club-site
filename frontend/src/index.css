@@ -160,6 +160,37 @@
   .shadow-card {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   }
+
+  /* Subtle Cultural Decorative Motifs */
+  .motif-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #ea580c;
+  }
+  .motif-divider::before,
+  .motif-divider::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(to right, transparent, rgba(234, 88, 12, 0.35), transparent);
+  }
+
+  .card-cultural {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-cultural::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, transparent 50%, rgba(234, 88, 12, 0.12) 50%);
+    pointer-events: none;
+  }
 }
 
 /* Reduced Motion Override — Accessible & Mandatory */
