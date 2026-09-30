@@ -405,3 +405,29 @@ def test_logout(client: TestClient, test_admin_user: User):
     )
     assert logout_resp.status_code == 200
     assert logout_resp.json()["status"] == "ok"
+
+
+def test_refresh_token_httponly_and_rotation(client: TestClient, test_admin_user: User):
+    """Tests refresh token rotation and HttpOnly cookie exchange."""
+    # 1. Login and receive refresh token cookie
+    login_resp = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@banza.org", "password": "SecureAdminPassword123!"},
+    )
+    assert login_resp.status_code == 200
+    assert "myc_refresh_token" in login_resp.cookies
+    initial_cookie = login_resp.cookies["myc_refresh_token"]
+
+    # 2. Call /refresh endpoint using cookie
+    refresh_resp = client.post("/api/v1/auth/refresh")
+    assert refresh_resp.status_code == 200
+    refresh_data = refresh_resp.json()
+    assert refresh_data["access_token"] is not None
+    assert "myc_refresh_token" in refresh_resp.cookies
+    rotated_cookie = refresh_resp.cookies["myc_refresh_token"]
+    assert rotated_cookie != initial_cookie
+
+    # 3. Old cookie should now be revoked
+    client.cookies.set("myc_refresh_token", initial_cookie)
+    revoked_check = client.post("/api/v1/auth/refresh")
+    assert revoked_check.status_code == 401

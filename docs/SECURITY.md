@@ -70,6 +70,9 @@ This document outlines the security controls, authentication architecture, and c
   - `X-Frame-Options: DENY`
   - `Referrer-Policy: strict-origin-when-cross-origin`
   - `X-XSS-Protection: 1; mode=block`
+  - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`
+  - `Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://*; frame-ancestors 'none'; object-src 'none'; base-uri 'self';`
+  - `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload` (enabled in production / HTTPS)
 - **CORS Configuration**: Discrete whitelist parsing from `CORS_ORIGINS` (wildcards prohibited in production).
 - **Generic Error Responses**: Standardized JSON error structure (`{"error": {"code": "...", "message": "..."}}`) with zero internal stack trace, filesystem path, or SQL query leakage.
 
@@ -87,19 +90,10 @@ This document outlines the security controls, authentication architecture, and c
 
 ---
 
-## 10. Token Storage & Transport Security Audit
-- **Current Token Storage**:
-  - Access Token (15-minute JWT) is managed by `AuthContext` and stored in browser `sessionStorage` (`myc_admin_access_token`).
-  - `sessionStorage` is tab-isolated and clears automatically when the browser tab/window is closed.
-- **XSS Threat Modeling**:
-  - Web Storage (`localStorage` and `sessionStorage`) is accessible to JavaScript executing in the same origin.
-  - If a Cross-Site Scripting (XSS) vulnerability exists, an attacker's script could read the active 15-minute access token from `sessionStorage`.
-- **Production Hardening Pathways**:
-  1. **Tier 1 (Current + Mitigations)**: Short 15-minute JWT lifespan, tab-scoped `sessionStorage`, strict backend security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`), and Nginx CSP headers.
-  2. **Tier 2 (Recommended Production Upgrade — In-Memory + HttpOnly Cookie)**:
-     - Keep the short-lived access token *only in React memory* (`useState`), never written to disk or Web Storage.
-     - Transmit the refresh token via a `Set-Cookie: refresh_token=...; HttpOnly; Secure; SameSite=Lax; Path=/api/v1/auth` cookie.
-     - On page reload, a silent `/api/v1/auth/refresh` request rehydrates the in-memory access token. JavaScript cannot read `HttpOnly` cookies, preventing XSS extraction entirely.
-  3. **Tier 3 (Full HttpOnly Session Cookies)**:
-     - Store both access and refresh tokens in `HttpOnly; Secure; SameSite=Strict` cookies with CSRF token verification for mutating endpoints.
+## 10. Token Storage & Transport Security Implementation
+- **Current Active Token Architecture**:
+  - **Access Token (15-minute JWT)**: Managed by `AuthContext` and stored strictly in browser `sessionStorage` (`myc_admin_access_token`). It clears automatically when the tab/browser is closed and is never written to `localStorage`.
+  - **Refresh Token (7-day High-Entropy Token)**: Issued as an **`HttpOnly; SameSite=Lax; Secure` cookie** (`myc_refresh_token`) scoped to `/api/v1/auth`. JavaScript executing in the browser cannot read or extract the refresh token, providing complete immunity against XSS token harvesting.
+  - **Token Rotation**: The `/api/v1/auth/refresh` endpoint cryptographically invalidates the prior refresh token on each exchange and issues a new token pair.
+  - **Single-Origin & Revocation**: Refresh tokens are revoked immediately in the database upon logout or password change.
 

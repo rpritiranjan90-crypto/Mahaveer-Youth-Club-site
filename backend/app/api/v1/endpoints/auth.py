@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 import secrets
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 import jwt
 
 from backend.app.api.deps import get_client_ip, get_current_admin, get_current_user
+from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.logging import logger
 from backend.app.core.rate_limit import login_rate_limiter
@@ -48,6 +49,7 @@ router = APIRouter()
 def login(
     request_data: LoginRequest,
     request: Request,
+    response: Response,
     db: Session = Depends(get_db),
 ) -> LoginResponse:
     """
@@ -142,6 +144,16 @@ def login(
         details={"auth_method": "password_direct"},
     )
 
+    response.set_cookie(
+        key="myc_refresh_token",
+        value=raw_refresh,
+        httponly=True,
+        secure=(settings.APP_ENV == "production"),
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+        path=f"{settings.API_V1_STR}/auth",
+    )
+
     return LoginResponse(
         requires_2fa=False,
         access_token=access_token,
@@ -155,6 +167,7 @@ def login(
 def verify_2fa(
     verify_data: TwoFactorVerifyRequest,
     request: Request,
+    response: Response,
     db: Session = Depends(get_db),
 ) -> LoginResponse:
     """
@@ -262,10 +275,115 @@ def verify_2fa(
         details={"auth_method": "totp" if is_totp_valid else "recovery_code"},
     )
 
+    response.set_cookie(
+        key="myc_refresh_token",
+        value=raw_refresh,
+        httponly=True,
+        secure=(settings.APP_ENV == "production"),
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+        path=f"{settings.API_V1_STR}/auth",
+    )
+
     return LoginResponse(
         requires_2fa=False,
         access_token=access_token,
         refresh_token=raw_refresh,
+        token_type="bearer",
+        user=UserOut.model_validate(user),
+    )
+
+
+@router.post("/refresh", response_model=LoginResponse, summary="Refresh Access Token")
+def refresh_session_token(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> LoginResponse:
+    """
+    Refreshes access token using secure HttpOnly cookie or authorization header.
+    Rotates the refresh token securely upon each exchange.
+    """
+    raw_refresh = request.cookies.get("myc_refresh_token")
+    if not raw_refresh:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            raw_refresh = auth_header.split(" ", 1)[1].strip()
+
+    if not raw_refresh:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token missing or expired.",
+        )
+
+    token_hash_val = hash_token(raw_refresh)
+    token_entry = (
+        db.query(RefreshToken)
+        .filter(
+            RefreshToken.token_hash == token_hash_val,
+            RefreshToken.is_revoked.is_(False),
+        )
+        .first()
+    )
+
+    if not token_entry:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token invalid or expired.",
+        )
+
+    expires = token_entry.expires_at
+    is_token_expired = (
+        expires < datetime.now(timezone.utc)
+        if expires.tzinfo is not None
+        else expires < datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+
+    if is_token_expired:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token invalid or expired.",
+        )
+
+    user = db.query(User).filter(User.id == token_entry.user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account inactive or unavailable.",
+        )
+
+    # Invalidate old refresh token (Rotation)
+    token_entry.is_revoked = True
+    token_entry.revoked_at = datetime.now(timezone.utc)
+
+    # Issue fresh tokens
+    new_access_token = create_access_token(user.id, user.email, user.is_admin)
+    new_raw_refresh, new_refresh_hash, new_refresh_expires = create_refresh_token()
+
+    new_token_entry = RefreshToken(
+        user_id=user.id,
+        token_hash=new_refresh_hash,
+        jti=secrets.token_hex(16),
+        expires_at=new_refresh_expires,
+    )
+    db.add(new_token_entry)
+    db.commit()
+    db.refresh(user)
+
+    response.set_cookie(
+        key="myc_refresh_token",
+        value=new_raw_refresh,
+        httponly=True,
+        secure=(settings.APP_ENV == "production"),
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+        path=f"{settings.API_V1_STR}/auth",
+    )
+
+    return LoginResponse(
+        requires_2fa=False,
+        access_token=new_access_token,
+        refresh_token=new_raw_refresh,
         token_type="bearer",
         user=UserOut.model_validate(user),
     )
@@ -491,6 +609,7 @@ def regenerate_recovery_codes(
 def change_password(
     pwd_data: PasswordChangeRequest,
     request: Request,
+    response: Response,
     current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ) -> Dict[str, str]:
@@ -536,12 +655,15 @@ def change_password(
         ip_address=client_ip,
     )
 
+    response.delete_cookie(key="myc_refresh_token", path=f"{settings.API_V1_STR}/auth")
+
     return {"status": "ok", "message": "Password changed successfully."}
 
 
 @router.post("/logout", summary="Logout")
 def logout(
     request: Request,
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Dict[str, str]:
@@ -562,6 +684,8 @@ def logout(
         user_email=current_user.email,
         ip_address=client_ip,
     )
+
+    response.delete_cookie(key="myc_refresh_token", path=f"{settings.API_V1_STR}/auth")
 
     return {"status": "ok", "message": "Logged out successfully."}
 

@@ -38,4 +38,6 @@ def test_security_headers_middleware(client):
     assert response.headers["x-frame-options"] == "DENY"
     assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
     assert response.headers["x-xss-protection"] == "1; mode=block"
+    assert "permissions-policy" in response.headers
+    assert "content-security-policy" in response.headers
 
