@@ -6,7 +6,6 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
-import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
@@ -61,7 +60,7 @@ export const ActivitiesPage: React.FC = () => {
   return (
     <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-10 sm:py-14 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -79,16 +78,9 @@ export const ActivitiesPage: React.FC = () => {
       </section>
 
       {/* Main Activities Section */}
-      <Section background="default" size="lg">
+      <Section background="default" size="md">
         <Container size="lg">
-          <div className="space-y-8">
-            <div className="reveal-on-scroll">
-              <SectionHeader
-                badge={t('activities.programs.badge')}
-                title={t('activities.programs.title')}
-                subtitle={t('activities.programs.subtitle')}
-              />
-            </div>
+          <div className="space-y-6">
 
             {/* Category Filter Bar */}
             <div className="reveal-on-scroll bg-white p-4 rounded-xl border border-stone-200 shadow-xs flex items-center flex-wrap gap-2">

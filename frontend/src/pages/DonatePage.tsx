@@ -46,7 +46,7 @@ export const DonatePage: React.FC = () => {
   return (
     <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-10 sm:py-14 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -64,9 +64,9 @@ export const DonatePage: React.FC = () => {
       </section>
 
       {/* Main Donation Guidelines */}
-      <Section background="default" size="lg">
+      <Section background="default" size="md">
         <Container size="lg">
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-4xl mx-auto space-y-6">
             <div className="reveal-on-scroll">
               <SectionHeader
                 badge={t('donate.modes.badge')}

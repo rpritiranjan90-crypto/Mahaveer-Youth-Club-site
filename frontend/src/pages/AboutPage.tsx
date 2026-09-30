@@ -22,7 +22,7 @@ export const AboutPage: React.FC = () => {
   return (
     <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-10 sm:py-14 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -40,9 +40,9 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* Main Content Sections */}
-      <Section background="default" size="lg">
+      <Section background="default" size="md">
         <Container size="lg">
-          <div className="space-y-12 max-w-4xl">
+          <div className="space-y-10 max-w-4xl">
             {/* 1. Introduction & Overview */}
             <div className="space-y-4 reveal-on-scroll">
               <SectionHeader

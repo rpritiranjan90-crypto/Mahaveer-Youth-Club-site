@@ -3,7 +3,6 @@ import { Container } from '../components/layout/Container';
 import { Section } from '../components/layout/Section';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { SectionHeader } from '../components/content/SectionHeader';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
@@ -84,7 +83,7 @@ export const CelebrationsPage: React.FC = () => {
   return (
     <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-10 sm:py-14 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -102,16 +101,9 @@ export const CelebrationsPage: React.FC = () => {
       </section>
 
       {/* Main Gallery Section */}
-      <Section background="default" size="lg">
+      <Section background="default" size="md">
         <Container size="lg">
-          <div className="space-y-8">
-            <div className="reveal-on-scroll">
-              <SectionHeader
-                badge={t('celebrations.gallery.badge')}
-                title={t('celebrations.gallery.title')}
-                subtitle={t('celebrations.gallery.subtitle')}
-              />
-            </div>
+          <div className="space-y-6">
 
             {loading ? (
               <LoadingState message={t('celebrations.loading')} />

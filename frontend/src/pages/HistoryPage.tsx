@@ -3,14 +3,13 @@ import { Container } from '../components/layout/Container';
 import { Section } from '../components/layout/Section';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 
 export const HistoryPage: React.FC = () => {
   const { t } = useLanguage();
-  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
+  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.05 });
 
   usePageMeta({
     title: 'History & Milestones — Mahaveer Youth Club Banza',
@@ -47,7 +46,7 @@ export const HistoryPage: React.FC = () => {
   return (
     <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-10 sm:py-14 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -65,19 +64,11 @@ export const HistoryPage: React.FC = () => {
       </section>
 
       {/* Main Timeline Section */}
-      <Section background="default" size="lg">
+      <Section background="default" size="md">
         <Container size="lg">
-          <div className="max-w-3xl mx-auto space-y-8">
-            <div className="reveal-on-scroll">
-              <SectionHeader
-                badge={t('history.timeline.badge')}
-                title={t('history.timeline.title')}
-                subtitle={t('history.timeline.subtitle')}
-              />
-            </div>
-
+          <div className="max-w-3xl mx-auto space-y-6">
             {/* Visual Timeline Tree */}
-            <div className="relative border-l-2 border-orange-300 ml-4 sm:ml-6 space-y-8 pl-6 sm:pl-8 py-2">
+            <div className="relative border-l-2 border-orange-300 ml-4 sm:ml-6 space-y-6 pl-6 sm:pl-8 py-2">
               {timelineItems.map((item, index) => (
                 <div key={index} className={`relative group reveal-on-scroll stagger-${(index % 4) + 1}`}>
                   {/* Timeline Dot */}
@@ -91,7 +82,7 @@ export const HistoryPage: React.FC = () => {
                   />
 
                   {/* Timeline Card */}
-                  <Card interactive className="p-5 sm:p-6 bg-white border border-stone-200">
+                  <Card interactive className="p-5 sm:p-6 bg-white border border-stone-200 shadow-soft">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <span className="px-3 py-1 bg-orange-50 text-orange-800 border border-orange-200 rounded-md font-black text-sm sm:text-base font-mono">
                         {item.year}
@@ -100,7 +91,7 @@ export const HistoryPage: React.FC = () => {
                         {item.isConfirmed ? t('history.confirmed') : t('history.placeholder')}
                       </Badge>
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-stone-900 mb-2">
+                    <h3 className="text-base sm:text-lg font-bold text-stone-900 mb-1.5">
                       {item.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
@@ -112,13 +103,13 @@ export const HistoryPage: React.FC = () => {
             </div>
 
             {/* Archival Notice Card */}
-            <div className="reveal-on-scroll">
-              <Card className="p-6 bg-stone-50 border border-stone-200 text-center">
+            <div className="reveal-on-scroll pt-2">
+              <Card className="p-5 sm:p-6 bg-stone-50 border border-stone-200 text-center">
                 <span className="text-2xl block mb-2 select-none" aria-hidden="true">📜</span>
                 <h4 className="font-bold text-stone-900 text-sm mb-1">
                   {t('history.archivalNotice.title')}
                 </h4>
-                <p className="text-xs text-stone-500 max-w-md mx-auto">
+                <p className="text-xs text-stone-500 max-w-md mx-auto leading-relaxed">
                   {t('history.archivalNotice.desc')}
                 </p>
               </Card>

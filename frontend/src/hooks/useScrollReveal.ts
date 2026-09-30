@@ -8,27 +8,29 @@ export interface UseScrollRevealOptions {
 
 /**
  * Lightweight, zero-dependency scroll-reveal hook using native IntersectionObserver.
- * Observes child elements with `.reveal-on-scroll` or the container itself and adds `.is-revealed`.
- * Automatically respects `prefers-reduced-motion`.
+ * Observes child elements with `.reveal-on-scroll` or `.reveal-scale` and adds `.is-revealed`.
+ * Automatically reveals in-viewport elements on mount and respects `prefers-reduced-motion`.
  */
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
   options: UseScrollRevealOptions = {}
 ) {
   const containerRef = useRef<T | null>(null);
-  const { threshold = 0.15, rootMargin = '0px 0px -40px 0px', triggerOnce = true } = options;
+  const { threshold = 0.05, rootMargin = '50px 0px 50px 0px', triggerOnce = true } = options;
 
   useEffect(() => {
-    // Check for prefers-reduced-motion
+    const rootNode = containerRef.current;
+    if (!rootNode) return;
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
-      // If user prefers reduced motion, immediately reveal everything
-      if (containerRef.current) {
-        containerRef.current.classList.add('is-revealed');
-        const elements = containerRef.current.querySelectorAll('.reveal-on-scroll');
-        elements.forEach((el) => el.classList.add('is-revealed'));
-      }
+      rootNode.classList.add('is-revealed');
+      rootNode.querySelectorAll('.reveal-on-scroll, .reveal-scale').forEach((el) => {
+        el.classList.add('is-revealed');
+      });
       return;
     }
+
+    const targets = rootNode.querySelectorAll<HTMLElement>('.reveal-on-scroll, .reveal-scale');
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -38,21 +40,22 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
             if (triggerOnce) {
               observer.unobserve(entry.target);
             }
-          } else if (!triggerOnce) {
-            entry.target.classList.remove('is-revealed');
           }
         });
       },
       { threshold, rootMargin }
     );
 
-    const rootNode = containerRef.current;
-    if (!rootNode) return;
-
-    // Observe children with `.reveal-on-scroll` or the root node itself
-    const targets = rootNode.querySelectorAll('.reveal-on-scroll');
     if (targets.length > 0) {
-      targets.forEach((el) => observer.observe(el));
+      targets.forEach((el) => {
+        // Immediate check: If element is within or above the viewport on load, reveal immediately
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 100) {
+          el.classList.add('is-revealed');
+        } else {
+          observer.observe(el);
+        }
+      });
     } else {
       observer.observe(rootNode);
     }

@@ -6,7 +6,6 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
-import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
@@ -64,7 +63,7 @@ export const UpdatesPage: React.FC = () => {
   return (
     <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-10 sm:py-14 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -82,16 +81,18 @@ export const UpdatesPage: React.FC = () => {
       </section>
 
       {/* Main Updates Section */}
-      <Section background="default" size="lg">
+      <Section background="default" size="md">
         <Container size="lg">
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="reveal-on-scroll flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <SectionHeader
-                badge={t('updates.circulars.badge')}
-                title={t('updates.circulars.title')}
-                subtitle={t('updates.circulars.subtitle')}
-                className="mb-0 sm:mb-0"
-              />
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+                  {t('updates.circulars.badge')}
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold text-stone-900">
+                  {t('updates.circulars.title')}
+                </h2>
+              </div>
 
               {/* Search Box */}
               <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-sm w-full">
