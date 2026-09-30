@@ -8,12 +8,14 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { ActivityItem } from '../types';
 
 export const ActivitiesPage: React.FC = () => {
   const { t } = useLanguage();
+  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
 
   usePageMeta({
     title: 'Activities & Programs — Mahaveer Youth Club Banza',
@@ -57,9 +59,9 @@ export const ActivitiesPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/50 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -80,14 +82,16 @@ export const ActivitiesPage: React.FC = () => {
       <Section background="default" size="lg">
         <Container size="lg">
           <div className="space-y-8">
-            <SectionHeader
-              badge={t('activities.programs.badge')}
-              title={t('activities.programs.title')}
-              subtitle={t('activities.programs.subtitle')}
-            />
+            <div className="reveal-on-scroll">
+              <SectionHeader
+                badge={t('activities.programs.badge')}
+                title={t('activities.programs.title')}
+                subtitle={t('activities.programs.subtitle')}
+              />
+            </div>
 
             {/* Category Filter Bar */}
-            <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs flex items-center flex-wrap gap-2">
+            <div className="reveal-on-scroll bg-white p-4 rounded-xl border border-stone-200 shadow-xs flex items-center flex-wrap gap-2">
               <span className="text-xs font-bold text-stone-500 uppercase tracking-wider mr-2">
                 {t('common.category')}
               </span>
@@ -124,10 +128,10 @@ export const ActivitiesPage: React.FC = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {activities.map((activity) => (
+                  {activities.map((activity, index) => (
                     <div
                       key={activity.id}
-                      className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                      className={`reveal-on-scroll stagger-${(index % 3) + 1} card-interactive bg-white rounded-xl border border-stone-200 overflow-hidden shadow-xs flex flex-col justify-between`}
                     >
                       <div>
                         {activity.image && (
@@ -135,7 +139,7 @@ export const ActivitiesPage: React.FC = () => {
                             <img
                               src={activity.image}
                               alt={activity.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-300 hover:scale-103"
                               loading="lazy"
                             />
                           </div>
@@ -161,7 +165,7 @@ export const ActivitiesPage: React.FC = () => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 pt-6">
+                  <div className="reveal-on-scroll flex items-center justify-center gap-2 pt-6">
                     <Button
                       variant="outline"
                       size="sm"
@@ -170,7 +174,7 @@ export const ActivitiesPage: React.FC = () => {
                     >
                       {t('common.previous')}
                     </Button>
-                    <span className="text-xs text-stone-600 px-3">
+                    <span className="text-xs text-stone-600 px-3 font-mono">
                       {t('common.pageOf', { page, totalPages })}
                     </span>
                     <Button

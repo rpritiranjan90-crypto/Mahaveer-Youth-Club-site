@@ -8,12 +8,14 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { UpdateItem } from '../types';
 
 export const UpdatesPage: React.FC = () => {
   const { t } = useLanguage();
+  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
 
   usePageMeta({
     title: 'Updates & Announcements — Mahaveer Youth Club Banza',
@@ -60,9 +62,9 @@ export const UpdatesPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/50 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -83,7 +85,7 @@ export const UpdatesPage: React.FC = () => {
       <Section background="default" size="lg">
         <Container size="lg">
           <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="reveal-on-scroll flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <SectionHeader
                 badge={t('updates.circulars.badge')}
                 title={t('updates.circulars.title')}
@@ -131,18 +133,18 @@ export const UpdatesPage: React.FC = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {updates.map((item) => (
+                  {updates.map((item, index) => (
                     <article
                       key={item.id}
                       onClick={() => setSelectedUpdate(item)}
-                      className="cursor-pointer bg-white rounded-xl border border-stone-200 p-6 shadow-xs hover:shadow-md hover:border-orange-300 transition-all flex flex-col justify-between space-y-4"
+                      className={`reveal-on-scroll stagger-${(index % 3) + 1} card-interactive cursor-pointer bg-white rounded-xl border border-stone-200 p-6 shadow-xs flex flex-col justify-between space-y-4`}
                     >
                       {item.featured_image && (
                         <div className="aspect-16/9 rounded-lg overflow-hidden bg-stone-100 -mx-2 -mt-2 mb-2">
                           <img
                             src={item.featured_image}
                             alt={item.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-103"
                             loading="lazy"
                           />
                         </div>
@@ -172,7 +174,7 @@ export const UpdatesPage: React.FC = () => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 pt-6">
+                  <div className="reveal-on-scroll flex items-center justify-center gap-2 pt-6">
                     <Button
                       variant="outline"
                       size="sm"
@@ -181,7 +183,7 @@ export const UpdatesPage: React.FC = () => {
                     >
                       {t('common.previous')}
                     </Button>
-                    <span className="text-xs text-stone-600 px-3">
+                    <span className="text-xs text-stone-600 px-3 font-mono">
                       {t('common.pageOf', { page, totalPages })}
                     </span>
                     <Button

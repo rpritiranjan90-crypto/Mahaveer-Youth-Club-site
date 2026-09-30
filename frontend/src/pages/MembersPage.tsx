@@ -8,12 +8,14 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { MemberItem } from '../types';
 
 export const MembersPage: React.FC = () => {
   const { t } = useLanguage();
+  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
 
   usePageMeta({
     title: 'Our Members — Mahaveer Youth Club Banza',
@@ -44,9 +46,9 @@ export const MembersPage: React.FC = () => {
   }, [fetchMembers]);
 
   return (
-    <div>
+    <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/50 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -71,7 +73,7 @@ export const MembersPage: React.FC = () => {
       <Section background="default" size="lg">
         <Container size="lg">
           <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="reveal-on-scroll flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <SectionHeader
                 badge={t('members.directory.badge')}
                 title={t('members.directory.title')}
@@ -97,26 +99,31 @@ export const MembersPage: React.FC = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {members.map((member, index) => (
-                    <Card
+                    <div
                       key={member.id}
-                      className="p-4 bg-white border border-stone-200 hover:border-orange-300 hover:shadow-sm transition-all flex items-center space-x-3"
+                      className={`reveal-on-scroll stagger-${(index % 4) + 1}`}
                     >
-                      <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center shrink-0 font-mono">
-                        {(index + 1).toString().padStart(2, '0')}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-bold text-stone-900 truncate">
-                          {member.display_name}
-                        </h3>
-                        <p className="text-[11px] text-stone-500 truncate">
-                          {member.role || t('members.defaultRole')}
-                        </p>
-                      </div>
-                    </Card>
+                      <Card
+                        interactive
+                        className="p-4 bg-white border border-stone-200 flex items-center space-x-3 h-full"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center shrink-0 font-mono">
+                          {(index + 1).toString().padStart(2, '0')}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-bold text-stone-900 truncate">
+                            {member.display_name}
+                          </h3>
+                          <p className="text-[11px] text-stone-500 truncate">
+                            {member.role || t('members.defaultRole')}
+                          </p>
+                        </div>
+                      </Card>
+                    </div>
                   ))}
                 </div>
 
-                <div className="p-6 bg-stone-100 rounded-xl border border-stone-200 text-center text-xs text-stone-600">
+                <div className="reveal-on-scroll p-6 bg-stone-100 rounded-xl border border-stone-200 text-center text-xs text-stone-600">
                   {t('members.footerNote')}
                 </div>
               </>

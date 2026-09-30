@@ -8,12 +8,14 @@ import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { GalleryPhoto } from '../types';
 
 export const CelebrationsPage: React.FC = () => {
   const { t } = useLanguage();
+  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
 
   usePageMeta({
     title: 'Celebrations & Gallery — Mahaveer Youth Club Banza',
@@ -80,9 +82,9 @@ export const CelebrationsPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/50 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -103,11 +105,13 @@ export const CelebrationsPage: React.FC = () => {
       <Section background="default" size="lg">
         <Container size="lg">
           <div className="space-y-8">
-            <SectionHeader
-              badge={t('celebrations.gallery.badge')}
-              title={t('celebrations.gallery.title')}
-              subtitle={t('celebrations.gallery.subtitle')}
-            />
+            <div className="reveal-on-scroll">
+              <SectionHeader
+                badge={t('celebrations.gallery.badge')}
+                title={t('celebrations.gallery.title')}
+                subtitle={t('celebrations.gallery.subtitle')}
+              />
+            </div>
 
             {loading ? (
               <LoadingState message={t('celebrations.loading')} />
@@ -119,19 +123,21 @@ export const CelebrationsPage: React.FC = () => {
               />
             ) : (
               <>
-                <GalleryGrid
-                  photos={photos}
-                  availableYears={availableYears}
-                  availableCategories={availableCategories}
-                  selectedYear={selectedYear}
-                  selectedCategory={selectedCategory}
-                  onYearChange={handleYearChange}
-                  onCategoryChange={handleCategoryChange}
-                />
+                <div className="reveal-on-scroll">
+                  <GalleryGrid
+                    photos={photos}
+                    availableYears={availableYears}
+                    availableCategories={availableCategories}
+                    selectedYear={selectedYear}
+                    selectedCategory={selectedCategory}
+                    onYearChange={handleYearChange}
+                    onCategoryChange={handleCategoryChange}
+                  />
+                </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 pt-6">
+                  <div className="reveal-on-scroll flex items-center justify-center gap-2 pt-6">
                     <Button
                       variant="outline"
                       size="sm"
@@ -140,7 +146,7 @@ export const CelebrationsPage: React.FC = () => {
                     >
                       {t('common.previous')}
                     </Button>
-                    <span className="text-xs text-stone-600 px-3">
+                    <span className="text-xs text-stone-600 px-3 font-mono">
                       {t('common.pageOf', { page, totalPages })}
                     </span>
                     <Button

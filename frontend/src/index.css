@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Primary Colors: Saffron, Gold, Maroon, Warm Slate */
+    /* Primary Warm Palette: Saffron, Gold, Maroon, Warm Stone */
     --color-primary-50: #fff8ee;
     --color-primary-100: #ffedd5;
     --color-primary-500: #f97316;
@@ -25,6 +25,7 @@
   body {
     @apply bg-[#FCFBF9] text-[#1C1917] antialiased min-h-screen flex flex-col font-sans;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
   }
 
   /* Accessibility focus visible indicator */
@@ -33,11 +34,160 @@
   }
 }
 
+/* Animations & Transitions */
+@keyframes heroEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+/* Staggered entrance for Hero section */
+.hero-stagger-1 {
+  animation: heroEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0ms both;
+}
+
+.hero-stagger-2 {
+  animation: heroEntrance 0.65s cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+.hero-stagger-3 {
+  animation: heroEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) 160ms both;
+}
+
+.hero-stagger-4 {
+  animation: heroEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
+}
+
+.hero-stagger-5 {
+  animation: heroEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) 320ms both;
+}
+
+/* Scroll reveal classes (Zero-dependency) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-scale.is-revealed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delays for grid items */
+.stagger-1 {
+  transition-delay: 60ms;
+}
+.stagger-2 {
+  transition-delay: 120ms;
+}
+.stagger-3 {
+  transition-delay: 180ms;
+}
+.stagger-4 {
+  transition-delay: 240ms;
+}
+
+/* Card interactive micro-interactions */
+.card-interactive {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 6px 10px -4px rgba(0, 0, 0, 0.03);
+  border-color: #fdba74;
+}
+
+/* Button micro-interaction refinement */
+.btn-interactive {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.btn-interactive:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-interactive:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Ambient hero background glow */
+.hero-ambient-glow {
+  animation: heroGlow 8s ease-in-out infinite;
+}
+
 @layer utilities {
   .shadow-soft {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   }
   .shadow-card {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
+}
+
+/* Reduced Motion Override — Accessible & Mandatory */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal-on-scroll,
+  .reveal-scale,
+  .hero-stagger-1,
+  .hero-stagger-2,
+  .hero-stagger-3,
+  .hero-stagger-4,
+  .hero-stagger-5 {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .card-interactive:hover,
+  .btn-interactive:hover {
+    transform: none !important;
   }
 }

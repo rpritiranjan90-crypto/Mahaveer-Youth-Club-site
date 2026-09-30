@@ -5,10 +5,12 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 
 export const HistoryPage: React.FC = () => {
   const { t } = useLanguage();
+  const pageRef = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
 
   usePageMeta({
     title: 'History & Milestones — Mahaveer Youth Club Banza',
@@ -43,9 +45,9 @@ export const HistoryPage: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div ref={pageRef}>
       {/* Page Header */}
-      <section className="bg-gradient-to-b from-orange-50/50 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
@@ -66,16 +68,18 @@ export const HistoryPage: React.FC = () => {
       <Section background="default" size="lg">
         <Container size="lg">
           <div className="max-w-3xl mx-auto space-y-8">
-            <SectionHeader
-              badge={t('history.timeline.badge')}
-              title={t('history.timeline.title')}
-              subtitle={t('history.timeline.subtitle')}
-            />
+            <div className="reveal-on-scroll">
+              <SectionHeader
+                badge={t('history.timeline.badge')}
+                title={t('history.timeline.title')}
+                subtitle={t('history.timeline.subtitle')}
+              />
+            </div>
 
             {/* Visual Timeline Tree */}
             <div className="relative border-l-2 border-orange-300 ml-4 sm:ml-6 space-y-8 pl-6 sm:pl-8 py-2">
               {timelineItems.map((item, index) => (
-                <div key={index} className="relative group">
+                <div key={index} className={`relative group reveal-on-scroll stagger-${(index % 4) + 1}`}>
                   {/* Timeline Dot */}
                   <div
                     className={`absolute -left-[31px] sm:-left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white ${
@@ -87,7 +91,7 @@ export const HistoryPage: React.FC = () => {
                   />
 
                   {/* Timeline Card */}
-                  <Card className="p-5 sm:p-6 bg-white border border-stone-200 hover:shadow-md transition-shadow">
+                  <Card interactive className="p-5 sm:p-6 bg-white border border-stone-200">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <span className="px-3 py-1 bg-orange-50 text-orange-800 border border-orange-200 rounded-md font-black text-sm sm:text-base font-mono">
                         {item.year}
@@ -108,15 +112,17 @@ export const HistoryPage: React.FC = () => {
             </div>
 
             {/* Archival Notice Card */}
-            <Card className="p-6 bg-stone-50 border border-stone-200 text-center">
-              <span className="text-2xl block mb-2 select-none" aria-hidden="true">📜</span>
-              <h4 className="font-bold text-stone-900 text-sm mb-1">
-                {t('history.archivalNotice.title')}
-              </h4>
-              <p className="text-xs text-stone-500 max-w-md mx-auto">
-                {t('history.archivalNotice.desc')}
-              </p>
-            </Card>
+            <div className="reveal-on-scroll">
+              <Card className="p-6 bg-stone-50 border border-stone-200 text-center">
+                <span className="text-2xl block mb-2 select-none" aria-hidden="true">📜</span>
+                <h4 className="font-bold text-stone-900 text-sm mb-1">
+                  {t('history.archivalNotice.title')}
+                </h4>
+                <p className="text-xs text-stone-500 max-w-md mx-auto">
+                  {t('history.archivalNotice.desc')}
+                </p>
+              </Card>
+            </div>
           </div>
         </Container>
       </Section>
