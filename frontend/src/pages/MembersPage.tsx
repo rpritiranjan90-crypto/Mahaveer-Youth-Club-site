@@ -8,10 +8,13 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { MemberItem } from '../types';
 
 export const MembersPage: React.FC = () => {
+  const { t } = useLanguage();
+
   usePageMeta({
     title: 'Our Members — Mahaveer Youth Club Banza',
     description: 'Roster of active members and volunteers of Mahaveer Youth Club Banza.',
@@ -30,11 +33,11 @@ export const MembersPage: React.FC = () => {
       setMembers(data.items);
       setTotalCount(data.total);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load member roster.');
+      setError(err?.message || t('members.error'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchMembers();
@@ -47,16 +50,18 @@ export const MembersPage: React.FC = () => {
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant="saffron">OUR MEMBERS</Badge>
+              <Badge variant="saffron">{t('members.badge')}</Badge>
               <Badge variant="neutral">
-                {loading ? 'LOADING...' : `${totalCount} REGISTERED MEMBERS`}
+                {loading
+                  ? t('common.loading')
+                  : t('members.badgeCount', { count: totalCount })}
               </Badge>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight mb-3">
-              Our Members
+              {t('members.title')}
             </h1>
             <p className="text-base sm:text-lg text-stone-600 leading-relaxed">
-              Meet the dedicated volunteers, organizers, and youth members of Mahaveer Youth Club Banza.
+              {t('members.subtitle')}
             </p>
           </div>
         </Container>
@@ -68,25 +73,25 @@ export const MembersPage: React.FC = () => {
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <SectionHeader
-                badge="MEMBER DIRECTORY"
-                title="Club Membership Roster"
-                subtitle="Active members participating in annual puja organization and neighborhood seva."
+                badge={t('members.directory.badge')}
+                title={t('members.directory.title')}
+                subtitle={t('members.directory.subtitle')}
                 className="mb-0 sm:mb-0"
               />
             </div>
 
             {loading ? (
-              <LoadingState message="Loading club membership roster..." />
+              <LoadingState message={t('members.loading')} />
             ) : error ? (
               <ErrorState
-                title="Unable to load member roster"
+                title={t('members.error')}
                 message={error}
                 onRetry={fetchMembers}
               />
             ) : members.length === 0 ? (
               <EmptyState
-                title="Member roster will appear here once approved by the committee."
-                description="Official member nicknames are updated in the administrative portal upon formal confirmation from the club executive committee."
+                title={t('members.empty.title')}
+                description={t('members.empty.desc')}
               />
             ) : (
               <>
@@ -96,7 +101,7 @@ export const MembersPage: React.FC = () => {
                       key={member.id}
                       className="p-4 bg-white border border-stone-200 hover:border-orange-300 hover:shadow-sm transition-all flex items-center space-x-3"
                     >
-                      <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center shrink-0 font-mono">
                         {(index + 1).toString().padStart(2, '0')}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -104,7 +109,7 @@ export const MembersPage: React.FC = () => {
                           {member.display_name}
                         </h3>
                         <p className="text-[11px] text-stone-500 truncate">
-                          {member.role || 'Club Youth Member'}
+                          {member.role || t('members.defaultRole')}
                         </p>
                       </div>
                     </Card>
@@ -112,7 +117,7 @@ export const MembersPage: React.FC = () => {
                 </div>
 
                 <div className="p-6 bg-stone-100 rounded-xl border border-stone-200 text-center text-xs text-stone-600">
-                  Mahaveer Youth Club Banza membership represents unity, devotion, and youth cooperation.
+                  {t('members.footerNote')}
                 </div>
               </>
             )}

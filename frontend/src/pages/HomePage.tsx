@@ -8,10 +8,13 @@ import { Badge } from '../components/ui/Badge';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { CTASection } from '../components/content/CTASection';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { HealthStatus } from '../types';
 
 export const HomePage: React.FC = () => {
+  const { t } = useLanguage();
+
   usePageMeta({
     title: 'Mahaveer Youth Club Banza — Community, Culture, Celebration',
     description: 'Official website for Mahaveer Youth Club Banza. Founded in 2012 to celebrate Ganesh Chaturthi in a devotional way and foster community welfare.',
@@ -34,31 +37,31 @@ export const HomePage: React.FC = () => {
         <Container size="lg">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 mb-4">
-              <Badge variant="saffron">ESTABLISHED 2012</Badge>
-              <Badge variant="neutral">COMMUNITY ORGANIZATION</Badge>
+              <Badge variant="saffron">{t('home.badge.established')}</Badge>
+              <Badge variant="neutral">{t('home.badge.community')}</Badge>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-tight mb-4">
-              Mahaveer Youth Club <span className="text-orange-600">Banza</span>
+              {t('home.hero.title')} <span className="text-orange-600">Banza</span>
             </h1>
 
             <p className="text-base sm:text-xl font-medium text-stone-700 tracking-wide mb-3">
-              Community • Culture • Celebration
+              {t('home.hero.tagline')}
             </p>
 
             <p className="text-xs sm:text-base text-stone-600 max-w-2xl mx-auto leading-relaxed mb-8">
-              Dedicated to devotional celebrations of Ganesh Chaturthi, youth solidarity, and charitable community initiatives in the Banza region.
+              {t('home.hero.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link to="/celebrations">
                 <Button variant="primary" size="lg" className="w-full sm:w-auto font-bold shadow-md">
-                  Explore Celebrations
+                  {t('home.hero.exploreCelebrations')}
                 </Button>
               </Link>
               <Link to="/about">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  About the Club
+                  {t('home.hero.aboutClub')}
                 </Button>
               </Link>
             </div>
@@ -72,17 +75,17 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-4">
               <SectionHeader
-                badge="ABOUT THE CLUB"
-                title="Fostering Devotion & Community Unity"
-                subtitle="The senior members founded the club to celebrate Ganesh Chaturthi in a devotional way and bring happiness to the region."
+                badge={t('home.about.badge')}
+                title={t('home.about.title')}
+                subtitle={t('home.about.subtitle')}
               />
               <p className="text-sm text-stone-600 leading-relaxed">
-                Since our founding in 2012, Mahaveer Youth Club Banza has brought together local youth and elders for cultural festivals, community seva, and neighborhood welfare initiatives.
+                {t('home.about.description')}
               </p>
               <div className="pt-2">
                 <Link to="/about">
                   <Button variant="secondary" size="md">
-                    Read Our Full Story →
+                    {t('home.about.readStory')}
                   </Button>
                 </Link>
               </div>
@@ -91,30 +94,30 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-5">
               <Card className="p-6 sm:p-8 bg-white border border-stone-200 shadow-sm space-y-4">
                 <div className="flex items-center space-x-3 border-b border-stone-100 pb-4">
-                  <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-lg">
+                  <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-lg select-none">
                     🙏
                   </span>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-base">Devotional Tradition</h3>
-                    <p className="text-xs text-stone-500">Ganesh Chaturthi Utsav</p>
+                    <h3 className="font-bold text-stone-900 text-base">{t('home.pillars.devotion')}</h3>
+                    <p className="text-xs text-stone-500">{t('home.pillars.devotionDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3 border-b border-stone-100 pb-4">
-                  <span className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-lg">
+                  <span className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-lg select-none">
                     🤝
                   </span>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-base">Community Seva</h3>
-                    <p className="text-xs text-stone-500">Youth Welfare & Assistance</p>
+                    <h3 className="font-bold text-stone-900 text-base">{t('home.pillars.seva')}</h3>
+                    <p className="text-xs text-stone-500">{t('home.pillars.sevaDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <span className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                  <span className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg select-none">
                     🏛️
                   </span>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-base">Banza Heritage</h3>
-                    <p className="text-xs text-stone-500">Cultural Harmony & Unity</p>
+                    <h3 className="font-bold text-stone-900 text-base">{t('home.pillars.heritage')}</h3>
+                    <p className="text-xs text-stone-500">{t('home.pillars.heritageDesc')}</p>
                   </div>
                 </div>
               </Card>
@@ -128,9 +131,9 @@ export const HomePage: React.FC = () => {
         <Container size="lg">
           <div className="max-w-4xl mx-auto">
             <SectionHeader
-              badge="CHRONICLE"
-              title="Club History & Milestones"
-              subtitle="Tracing the milestones of Mahaveer Youth Club Banza from its 2012 beginnings."
+              badge={t('home.history.badge')}
+              title={t('home.history.title')}
+              subtitle={t('home.history.subtitle')}
               align="center"
             />
 
@@ -141,15 +144,15 @@ export const HomePage: React.FC = () => {
                 </div>
                 <div className="space-y-1 flex-1">
                   <h3 className="text-base font-bold text-stone-900">
-                    Foundation of Mahaveer Youth Club Banza
+                    {t('home.history.cardTitle')}
                   </h3>
                   <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                    The senior members established the club in Banza to conduct Sri Ganesh Puja with traditional sanctity and unite the youth for local welfare.
+                    {t('home.history.cardDesc')}
                   </p>
                 </div>
                 <Link to="/history" className="shrink-0 mt-2 sm:mt-0">
                   <Button variant="outline" size="sm">
-                    View Timeline →
+                    {t('home.history.viewTimeline')}
                   </Button>
                 </Link>
               </div>
@@ -162,28 +165,27 @@ export const HomePage: React.FC = () => {
       <Section background="default" size="md">
         <Container size="lg">
           <SectionHeader
-            badge="EXPLORE PORTAL"
-            title="Public Community Hub"
-            subtitle="Discover our annual festivities, welfare activities, latest circulars, and youth roster."
+            badge={t('home.hub.badge')}
+            title={t('home.hub.title')}
+            subtitle={t('home.hub.subtitle')}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Celebrations Preview */}
             <Card className="p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div className="space-y-2">
-                <div className="w-10 h-10 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center text-xl">
+                <div className="w-10 h-10 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center text-xl select-none">
                   🌺
                 </div>
-                <h3 className="font-bold text-stone-900 text-base">Celebrations</h3>
+                <h3 className="font-bold text-stone-900 text-base">{t('home.hub.celebrations')}</h3>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  Annual Ganesh Chaturthi puja archive, rituals, and festive galleries across past years.
+                  {t('home.hub.celebrationsDesc')}
                 </p>
               </div>
               <div className="pt-4">
                 <Link to="/celebrations">
                   <Button variant="ghost" size="sm" className="w-full justify-between text-orange-700 font-semibold px-0">
-                    <span>View Gallery</span>
-                    <span>→</span>
+                    <span>{t('home.hub.celebrationsAction')}</span>
                   </Button>
                 </Link>
               </div>
@@ -192,19 +194,18 @@ export const HomePage: React.FC = () => {
             {/* Activities Preview */}
             <Card className="p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div className="space-y-2">
-                <div className="w-10 h-10 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xl">
+                <div className="w-10 h-10 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xl select-none">
                   🎯
                 </div>
-                <h3 className="font-bold text-stone-900 text-base">Activities</h3>
+                <h3 className="font-bold text-stone-900 text-base">{t('home.hub.activities')}</h3>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  Community service drives, welfare camps, cultural evenings, and sports tournaments.
+                  {t('home.hub.activitiesDesc')}
                 </p>
               </div>
               <div className="pt-4">
                 <Link to="/activities">
                   <Button variant="ghost" size="sm" className="w-full justify-between text-rose-700 font-semibold px-0">
-                    <span>View Activities</span>
-                    <span>→</span>
+                    <span>{t('home.hub.activitiesAction')}</span>
                   </Button>
                 </Link>
               </div>
@@ -213,19 +214,18 @@ export const HomePage: React.FC = () => {
             {/* Updates Preview */}
             <Card className="p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div className="space-y-2">
-                <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xl select-none">
                   📢
                 </div>
-                <h3 className="font-bold text-stone-900 text-base">Updates & Notices</h3>
+                <h3 className="font-bold text-stone-900 text-base">{t('home.hub.updates')}</h3>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  Official announcements, festival dates, and meeting circulars from club committee.
+                  {t('home.hub.updatesDesc')}
                 </p>
               </div>
               <div className="pt-4">
                 <Link to="/updates">
                   <Button variant="ghost" size="sm" className="w-full justify-between text-amber-700 font-semibold px-0">
-                    <span>Read Updates</span>
-                    <span>→</span>
+                    <span>{t('home.hub.updatesAction')}</span>
                   </Button>
                 </Link>
               </div>
@@ -234,19 +234,18 @@ export const HomePage: React.FC = () => {
             {/* Members Preview */}
             <Card className="p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div className="space-y-2">
-                <div className="w-10 h-10 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center text-xl">
+                <div className="w-10 h-10 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center text-xl select-none">
                   👥
                 </div>
-                <h3 className="font-bold text-stone-900 text-base">Our Members</h3>
+                <h3 className="font-bold text-stone-900 text-base">{t('home.hub.members')}</h3>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  Dedicated club volunteers and youth members supporting annual organization efforts.
+                  {t('home.hub.membersDesc')}
                 </p>
               </div>
               <div className="pt-4">
                 <Link to="/members">
                   <Button variant="ghost" size="sm" className="w-full justify-between text-stone-700 font-semibold px-0">
-                    <span>View Roster</span>
-                    <span>→</span>
+                    <span>{t('home.hub.membersAction')}</span>
                   </Button>
                 </Link>
               </div>
@@ -257,38 +256,38 @@ export const HomePage: React.FC = () => {
 
       {/* 5. Donation CTA Section */}
       <CTASection
-        title="Support Mahaveer Youth Club Initiatives"
-        description="Your voluntary contributions directly support our annual Ganesh Puja celebrations, community feasts, and neighborhood welfare seva."
+        title={t('home.cta.title')}
+        description={t('home.cta.description')}
         primaryAction={{
-          label: 'Donation Information & UPI',
+          label: t('home.cta.donate'),
           to: '/donate',
         }}
         secondaryAction={{
-          label: 'Contact Club Committee',
+          label: t('home.cta.contact'),
           to: '/contact',
         }}
         variant="warm"
       />
 
-      {/* 6. System Status / Connectivity Card (Phase 1+2 Integration) */}
+      {/* 6. System Status / Connectivity Card */}
       <section className="py-6 bg-[#FCFBF9] border-t border-stone-200">
         <Container size="lg">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-stone-50 border border-stone-200 text-xs">
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
               <span className="font-semibold text-stone-800">
-                Backend System Status:
+                {t('home.status.backend')}
               </span>
               <span className="text-stone-600 font-mono">
                 {healthLoading
-                  ? 'Checking...'
+                  ? t('home.status.checking')
                   : backendHealth?.status === 'ok'
-                  ? `Online (v${backendHealth.version})`
+                  ? `${t('home.status.online')} (v${backendHealth.version})`
                   : 'Backend API reachable'}
               </span>
             </div>
-            <div className="text-stone-500 text-[11px]">
-              Mahaveer Youth Club Banza V2 • Phase 2 Verified
+            <div className="text-stone-500 text-[11px] font-mono">
+              Mahaveer Youth Club Banza • Established 2012
             </div>
           </div>
         </Container>

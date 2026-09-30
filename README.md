@@ -1,6 +1,6 @@
 # Mahaveer Youth Club Banza V2
 
-Official website and administrative portal for **Mahaveer Youth Club Banza** (Established 2012).
+Official website, multilingual public experience, and administrative portal for **Mahaveer Youth Club Banza** (Established 2012).
 
 ---
 
@@ -8,9 +8,11 @@ Official website and administrative portal for **Mahaveer Youth Club Banza** (Es
 Mahaveer Youth Club Banza V2 is a clean, production-oriented community website and application shell built with modern web best practices, strict type safety, modular monolith architecture, and security-first principles.
 
 ### Key Tenets
-- **Clean V2 Architecture**: Simple, maintainable, mobile-first, and accessible.
+- **Clean Multilingual Experience**: High-quality English and Odia (ଓଡ଼ିଆ) localization with persistent language toggle (`myc_language`).
 - **Strict Data Integrity**: Confirmed 2012 founding history. No invented names, contact info, or donation credentials.
-- **Foundational Security**: Environment-based secrets, strict CORS policy, safe error serialization without stack trace or credential leaks.
+- **Simplified Voluntary Donation**: Clear official UPI QR image, UPI ID copy with toast, cash pandal guidance, and recipient safety verification warning.
+- **Direct Contact Channels**: Instant phone call, WhatsApp direct messaging, Google Maps directions, and official social channels.
+- **Foundational Security & Privacy**: Environment-based secrets, strict CORS policy, member nickname-only privacy model, magic byte file upload validation, server-side HTML sanitization, and immutable audit trails.
 
 ---
 
@@ -22,6 +24,7 @@ Mahaveer Youth Club Banza V2 is a clean, production-oriented community website a
   - Vite
   - Tailwind CSS
   - React Router v6
+  - Custom Lightweight Localization System (English & Odia)
 - **Backend**:
   - Python 3.11+
   - FastAPI
@@ -47,15 +50,16 @@ MAHAVEER YOUTH CLUB SITE/
 │   ├── app/
 │   │   ├── api/                # API router layer
 │   │   │   └── v1/
-│   │   │       ├── endpoints/  # Health and readiness endpoints
+│   │   │       ├── endpoints/  # Health, Auth, CMS (Updates, Activities, Gallery, Members)
 │   │   │       └── api.py      # v1 router aggregator
-│   │   ├── core/               # App configuration, DB session, logging
+│   │   ├── core/               # App configuration, DB session, logging, security
 │   │   │   ├── config.py       # Pydantic Settings
 │   │   │   ├── database.py     # SQLAlchemy engine & session factory
+│   │   │   ├── security.py     # Argon2id, JWT, TOTP 2FA
 │   │   │   └── logging.py      # Structured sanitized logger
-│   │   ├── models/             # SQLAlchemy ORM declarative Base
+│   │   ├── models/             # SQLAlchemy ORM declarative models
 │   │   ├── schemas/            # Pydantic validation schemas
-│   │   ├── services/           # Service layer
+│   │   ├── services/           # Storage, HTML sanitizer, Audit logger
 │   │   └── main.py             # FastAPI entry point, CORS & error handlers
 │   ├── tests/                  # Pytest test suite
 │   ├── alembic.ini             # Alembic configuration
@@ -66,12 +70,16 @@ MAHAVEER YOUTH CLUB SITE/
 │   ├── public/                 # Static assets (robots.txt, sitemap.xml, favicons)
 │   ├── src/
 │   │   ├── components/         # Reusable UI primitives and layout components
-│   │   │   ├── layout/         # Navbar, Footer, Container, Section
-│   │   │   └── ui/             # Button, Card, Badge, Spinner, Alert
+│   │   │   ├── layout/         # Navbar (with English/Odia toggle), Footer, Container, Section
+│   │   │   ├── content/        # SectionHeader, CTASection
+│   │   │   ├── gallery/        # GalleryGrid, GalleryLightbox
+│   │   │   └── ui/             # Button, Card, Badge, Spinner, Alert, Modal, EmptyState, LoadingState, ErrorState
+│   │   ├── context/            # LanguageContext (English & Odia switcher with persistence)
+│   │   ├── locales/            # en.ts & or.ts translation dictionaries
 │   │   ├── hooks/              # Custom hooks (usePageMeta)
 │   │   ├── layouts/            # PublicLayout and AdminLayout
-│   │   ├── pages/              # Public routes & admin placeholder pages
-│   │   │   ├── admin/          # Admin portal, login & dashboard placeholders
+│   │   ├── pages/              # Multilingual public routes & admin CMS pages
+│   │   │   ├── admin/          # Admin login, dashboard, updates, activities, gallery, members, security, audit logs
 │   │   │   ├── HomePage.tsx
 │   │   │   ├── AboutPage.tsx
 │   │   │   ├── HistoryPage.tsx
@@ -84,10 +92,10 @@ MAHAVEER YOUTH CLUB SITE/
 │   │   │   └── NotFoundPage.tsx
 │   │   ├── services/           # Centralized typed API service client
 │   │   ├── types/              # TypeScript interface definitions
-│   │   ├── App.tsx             # Root router with public and admin routes
+│   │   ├── App.tsx             # Root router wrapped with LanguageProvider & AuthProvider
 │   │   ├── index.css           # Tailwind base, utilities, design tokens
 │   │   └── main.tsx            # React DOM mounting entry point
-│   ├── index.html              # HTML5 entry template
+│   ├── index.html              # HTML5 entry template with Open Graph & SEO
 │   ├── package.json            # Frontend dependencies & npm scripts
 │   ├── tsconfig.json           # TypeScript project references
 │   ├── tsconfig.app.json       # TypeScript compiler options (strict)
@@ -95,7 +103,9 @@ MAHAVEER YOUTH CLUB SITE/
 │
 ├── docs/                       # Project documentation
 │   ├── DEVELOPMENT.md          # Development workflow guide
-│   └── PHASE_STATUS.md         # Phase status tracker
+│   ├── PHASE_STATUS.md         # Phase status tracker
+│   ├── PUBLIC_EXPERIENCE.md    # Public experience, localization & donation guide
+│   └── SECURITY.md             # Security architecture & controls
 ├── docker-compose.yml          # PostgreSQL 16 container definition
 ├── .env.example                # Environment variables template
 ├── .gitignore                  # Git ignore rules
@@ -176,21 +186,21 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
-## 5. Public Routes (Connected to Live APIs)
-- `/` — Home (with live backend connectivity widget)
-- `/about` — About Us
-- `/history` — History (Confirmed 2012 founding)
+## 5. Multilingual Public Routes (Connected to Live APIs)
+- `/` — Home (Devotional heritage hero, CMS preview cards, system health widget)
+- `/about` — About Us (Confirmed 2012 founding story, community purpose pillars)
+- `/history` — History & Milestones (Confirmed 2012 chronological timeline)
 - `/members` — Members (Connected to live `/public/members` with privacy preservation)
-- `/celebrations` — Celebrations & Photo Gallery (Connected to dynamic `/public/gallery` and `/public/gallery/years`)
-- `/activities` — Activities & Welfare Programs (Connected to live `/public/activities` with category filters)
-- `/updates` — Updates & Official Circulars (Connected to live `/public/updates` with search & modal reader)
-- `/donate` — Donation & Contribution Information
-- `/contact` — Official Contact
+- `/celebrations` — Celebrations & Photo Gallery (Dynamic years from `/gallery/years`, photo lightbox)
+- `/activities` — Activities & Welfare Programs (Connected to `/public/activities` with category filters)
+- `/updates` — Updates & Official Circulars (Connected to `/public/updates` with search & modal reader)
+- `/donate` — Simplified Voluntary Donation Guide (UPI QR, UPI ID copy, cash instructions, verification notice)
+- `/contact` — Contact Channels (Direct Call, WhatsApp, Google Maps directions, Instagram, YouTube)
 - `*` — 404 Not Found Page
 
 ---
 
-## 6. Admin Control Panel (`/admin`)
+## 6. Admin Control Panel (`/admin` — English Only)
 - `/admin/login` — Administrator Login with Argon2id and RFC 6238 TOTP 2FA Verification
 - `/admin` — CMS Dashboard with live metrics overview
 - `/admin/updates` — Manage Updates & Circulars (Draft / Preview / Publish / Archive / HTML Sanitization)
@@ -205,6 +215,7 @@ Open `http://localhost:5173` in your browser.
 ## 7. Quality Standards & Rules
 1. **No Invented Club Data**: Official data only. Real member nicknames only.
 2. **Founding Year**: Confirmed 2012.
-3. **Content Publishing Lifecycle**: Draft -> Preview -> Publish -> Archive.
-4. **Member Privacy**: Nicknames only; zero personal contact details, email, or photos.
-5. **Security Controls**: Server-side HTML sanitization, magic bytes image verification, UUID server filenames, path traversal protection, Argon2id password hashing, and complete audit logging.
+3. **Localization Integrity**: 100% key parity between English and Odia with safe fallback to English. Admin panel remains English-only.
+4. **Content Publishing Lifecycle**: Draft -> Preview -> Publish -> Archive.
+5. **Member Privacy**: Nicknames only; zero personal contact details, email, or photos.
+6. **Security Controls**: Server-side HTML sanitization, magic bytes image verification, UUID server filenames, path traversal protection, Argon2id password hashing, and complete audit logging.

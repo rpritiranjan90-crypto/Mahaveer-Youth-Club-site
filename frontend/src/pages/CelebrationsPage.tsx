@@ -8,10 +8,13 @@ import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { GalleryPhoto } from '../types';
 
 export const CelebrationsPage: React.FC = () => {
+  const { t } = useLanguage();
+
   usePageMeta({
     title: 'Celebrations & Gallery — Mahaveer Youth Club Banza',
     description: 'Explore photos and moments from annual Ganesh Chaturthi celebrations and community festivals at Mahaveer Youth Club Banza.',
@@ -27,7 +30,7 @@ export const CelebrationsPage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  // Load filter metadata (dynamic years and categories)
+  // Load filter metadata (dynamic years and categories from API)
   useEffect(() => {
     Promise.all([apiService.getGalleryYears(), apiService.getGalleryCategories()])
       .then(([yearsData, catsData]) => {
@@ -56,11 +59,11 @@ export const CelebrationsPage: React.FC = () => {
       setPhotos(data.items);
       setTotalPages(data.total_pages);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load celebration photos.');
+      setError(err?.message || t('celebrations.error'));
     } finally {
       setLoading(false);
     }
-  }, [page, selectedYear, selectedCategory]);
+  }, [page, selectedYear, selectedCategory, t]);
 
   useEffect(() => {
     fetchPhotos();
@@ -83,14 +86,14 @@ export const CelebrationsPage: React.FC = () => {
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant="saffron">CELEBRATIONS & PUJA</Badge>
-              <Badge variant="neutral">PHOTO ARCHIVE</Badge>
+              <Badge variant="saffron">{t('celebrations.badge.puja')}</Badge>
+              <Badge variant="neutral">{t('celebrations.badge.archive')}</Badge>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight mb-3">
-              Celebrations & Festivities
+              {t('celebrations.title')}
             </h1>
             <p className="text-base sm:text-lg text-stone-600 leading-relaxed">
-              Explore the devotion, cultural vibrancy, and festive moments of Sri Ganesh Puja celebrations organized by Mahaveer Youth Club Banza.
+              {t('celebrations.subtitle')}
             </p>
           </div>
         </Container>
@@ -101,16 +104,16 @@ export const CelebrationsPage: React.FC = () => {
         <Container size="lg">
           <div className="space-y-8">
             <SectionHeader
-              badge="PHOTO GALLERY"
-              title="Festival Moments & Archives"
-              subtitle="Filter celebration photos by year and category. Dynamic years are retrieved automatically."
+              badge={t('celebrations.gallery.badge')}
+              title={t('celebrations.gallery.title')}
+              subtitle={t('celebrations.gallery.subtitle')}
             />
 
             {loading ? (
-              <LoadingState message="Loading celebration photos..." />
+              <LoadingState message={t('celebrations.loading')} />
             ) : error ? (
               <ErrorState
-                title="Unable to load gallery"
+                title={t('celebrations.error')}
                 message={error}
                 onRetry={fetchPhotos}
               />
@@ -135,10 +138,10 @@ export const CelebrationsPage: React.FC = () => {
                       disabled={page <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                     >
-                      Previous
+                      {t('common.previous')}
                     </Button>
                     <span className="text-xs text-stone-600 px-3">
-                      Page {page} of {totalPages}
+                      {t('common.pageOf', { page, totalPages })}
                     </span>
                     <Button
                       variant="outline"
@@ -146,7 +149,7 @@ export const CelebrationsPage: React.FC = () => {
                       disabled={page >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     >
-                      Next
+                      {t('common.next')}
                     </Button>
                   </div>
                 )}

@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container } from './Container';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const Footer: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-stone-900 text-stone-300 mt-auto border-t border-stone-800 text-left">
       <Container size="lg">
@@ -18,15 +21,15 @@ export const Footer: React.FC = () => {
               </span>
               <div>
                 <span className="text-white font-bold text-lg tracking-tight block">
-                  Mahaveer Youth Club Banza
+                  {t('footer.aboutTitle')}
                 </span>
                 <span className="text-xs text-orange-400 font-semibold">
-                  Established 2012
+                  {t('footer.established')}
                 </span>
               </div>
             </div>
             <p className="text-xs sm:text-sm text-stone-400 leading-relaxed max-w-md">
-              A grassroots community organization in Banza committed to devotional celebrations of Ganesh Chaturthi, youth unity, and neighborhood welfare seva.
+              {t('footer.aboutText')}
             </p>
             <div className="pt-1 text-xs text-stone-500 font-mono">
               [OFFICIAL ADDRESS — TO BE PROVIDED]
@@ -36,42 +39,42 @@ export const Footer: React.FC = () => {
           {/* 2. Public Navigation */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-200 mb-3">
-              Explore Website
+              {t('footer.explore')}
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link to="/" className="text-stone-400 hover:text-white transition-colors">
-                  Home
+                  {t('nav.home')}
                 </Link>
               </li>
               <li>
                 <Link to="/about" className="text-stone-400 hover:text-white transition-colors">
-                  About the Club
+                  {t('nav.about')}
                 </Link>
               </li>
               <li>
                 <Link to="/history" className="text-stone-400 hover:text-white transition-colors">
-                  History & Chronicle
+                  {t('nav.history')}
                 </Link>
               </li>
               <li>
                 <Link to="/members" className="text-stone-400 hover:text-white transition-colors">
-                  Our Members
+                  {t('nav.members')}
                 </Link>
               </li>
               <li>
                 <Link to="/celebrations" className="text-stone-400 hover:text-white transition-colors">
-                  Celebrations & Gallery
+                  {t('nav.celebrations')}
                 </Link>
               </li>
               <li>
                 <Link to="/activities" className="text-stone-400 hover:text-white transition-colors">
-                  Community Activities
+                  {t('nav.activities')}
                 </Link>
               </li>
               <li>
                 <Link to="/updates" className="text-stone-400 hover:text-white transition-colors">
-                  Updates & Bulletins
+                  {t('nav.updates')}
                 </Link>
               </li>
             </ul>
@@ -80,28 +83,28 @@ export const Footer: React.FC = () => {
           {/* 3. Seva & Contact Shortcuts */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-200 mb-3">
-              Seva & Contact
+              {t('footer.sevaContact')}
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link to="/donate" className="text-orange-400 hover:text-orange-300 font-semibold transition-colors">
-                  Donation & Seva Info →
+                  {t('footer.donateLink')}
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-stone-400 hover:text-white transition-colors">
-                  Contact Committee
+                  {t('footer.contactLink')}
                 </Link>
               </li>
               <li>
                 <Link to="/admin" className="text-stone-500 hover:text-stone-400 transition-colors">
-                  Admin Portal (Phase 1 Shell)
+                  {t('footer.adminLink')}
                 </Link>
               </li>
             </ul>
             <div className="mt-6 pt-4 border-t border-stone-800">
               <span className="inline-block px-2.5 py-1 rounded bg-stone-800 border border-stone-700 text-[11px] font-mono text-stone-400">
-                Community Portal V2
+                {t('footer.version')}
               </span>
             </div>
           </div>
@@ -109,9 +112,9 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Copyright Bar */}
         <div className="border-t border-stone-800/80 py-6 text-xs text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© {new Date().getFullYear()} Mahaveer Youth Club Banza. All rights reserved.</p>
-          <p className="text-[11px] text-stone-600">
-            Phase 2: Public Website Experience
+          <p>© {new Date().getFullYear()} Mahaveer Youth Club Banza. {t('footer.rights')}</p>
+          <p className="text-[11px] text-stone-600 font-mono">
+            Banza, Odisha • Since 2012
           </p>
         </div>
       </Container>

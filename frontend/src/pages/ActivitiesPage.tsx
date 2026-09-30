@@ -8,10 +8,13 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { ActivityItem } from '../types';
 
 export const ActivitiesPage: React.FC = () => {
+  const { t } = useLanguage();
+
   usePageMeta({
     title: 'Activities & Programs — Mahaveer Youth Club Banza',
     description: 'Explore community service, welfare drives, and cultural programs organized by Mahaveer Youth Club Banza.',
@@ -38,11 +41,11 @@ export const ActivitiesPage: React.FC = () => {
       setActivities(data.items);
       setTotalPages(data.total_pages);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load activities. Please check server connection.');
+      setError(err?.message || t('activities.error'));
     } finally {
       setLoading(false);
     }
-  }, [page, selectedCategory]);
+  }, [page, selectedCategory, t]);
 
   useEffect(() => {
     fetchActivities();
@@ -60,14 +63,14 @@ export const ActivitiesPage: React.FC = () => {
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant="saffron">ACTIVITIES & SEVA</Badge>
-              <Badge variant="neutral">COMMUNITY INITIATIVES</Badge>
+              <Badge variant="saffron">{t('activities.badge.seva')}</Badge>
+              <Badge variant="neutral">{t('activities.badge.initiatives')}</Badge>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight mb-3">
-              Community Activities & Events
+              {t('activities.title')}
             </h1>
             <p className="text-base sm:text-lg text-stone-600 leading-relaxed">
-              From festival organization and prasad distribution to voluntary welfare programs, sports competitions, and youth camps.
+              {t('activities.subtitle')}
             </p>
           </div>
         </Container>
@@ -78,15 +81,15 @@ export const ActivitiesPage: React.FC = () => {
         <Container size="lg">
           <div className="space-y-8">
             <SectionHeader
-              badge="PROGRAMS"
-              title="Club Activities & Welfare Programs"
-              subtitle="Browse active programs and upcoming events organized by our committee."
+              badge={t('activities.programs.badge')}
+              title={t('activities.programs.title')}
+              subtitle={t('activities.programs.subtitle')}
             />
 
             {/* Category Filter Bar */}
             <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs flex items-center flex-wrap gap-2">
               <span className="text-xs font-bold text-stone-500 uppercase tracking-wider mr-2">
-                Category:
+                {t('common.category')}
               </span>
               {categories.map((cat) => (
                 <button
@@ -99,24 +102,24 @@ export const ActivitiesPage: React.FC = () => {
                       : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                   }`}
                 >
-                  {cat}
+                  {cat === 'All' ? t('common.all') : cat}
                 </button>
               ))}
             </div>
 
             {/* Content Handling */}
             {loading ? (
-              <LoadingState message="Loading club activities..." />
+              <LoadingState message={t('activities.loading')} />
             ) : error ? (
               <ErrorState
-                title="Unable to load activities"
+                title={t('activities.error')}
                 message={error}
                 onRetry={fetchActivities}
               />
             ) : activities.length === 0 ? (
               <EmptyState
-                title="No activities available yet."
-                description="Activity schedules and official welfare event reports will appear here as they are officially announced by Mahaveer Youth Club Banza."
+                title={t('activities.empty.title')}
+                description={t('activities.empty.desc')}
               />
             ) : (
               <>
@@ -165,10 +168,10 @@ export const ActivitiesPage: React.FC = () => {
                       disabled={page <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                     >
-                      Previous
+                      {t('common.previous')}
                     </Button>
                     <span className="text-xs text-stone-600 px-3">
-                      Page {page} of {totalPages}
+                      {t('common.pageOf', { page, totalPages })}
                     </span>
                     <Button
                       variant="outline"
@@ -176,7 +179,7 @@ export const ActivitiesPage: React.FC = () => {
                       disabled={page >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     >
-                      Next
+                      {t('common.next')}
                     </Button>
                   </div>
                 )}

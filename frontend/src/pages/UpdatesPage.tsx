@@ -8,10 +8,13 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SectionHeader } from '../components/content/SectionHeader';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
 import { UpdateItem } from '../types';
 
 export const UpdatesPage: React.FC = () => {
+  const { t } = useLanguage();
+
   usePageMeta({
     title: 'Updates & Announcements — Mahaveer Youth Club Banza',
     description: 'Official notices, circulars, and announcements from Mahaveer Youth Club Banza committee.',
@@ -34,11 +37,11 @@ export const UpdatesPage: React.FC = () => {
       setUpdates(data.items);
       setTotalPages(data.total_pages);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load updates. Please check server connection.');
+      setError(err?.message || t('updates.error'));
     } finally {
       setLoading(false);
     }
-  }, [page, activeSearch]);
+  }, [page, activeSearch, t]);
 
   useEffect(() => {
     fetchUpdates();
@@ -63,14 +66,14 @@ export const UpdatesPage: React.FC = () => {
         <Container size="lg">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant="saffron">NEWS & BULLETINS</Badge>
-              <Badge variant="neutral">OFFICIAL NOTICES</Badge>
+              <Badge variant="saffron">{t('updates.badge.news')}</Badge>
+              <Badge variant="neutral">{t('updates.badge.notices')}</Badge>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight mb-3">
-              Updates & Announcements
+              {t('updates.title')}
             </h1>
             <p className="text-base sm:text-lg text-stone-600 leading-relaxed">
-              Stay informed with official circulars, festival schedules, and community meeting notices from the club executive committee.
+              {t('updates.subtitle')}
             </p>
           </div>
         </Container>
@@ -82,9 +85,9 @@ export const UpdatesPage: React.FC = () => {
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <SectionHeader
-                badge="LATEST CIRCULARS"
-                title="Official Notices"
-                subtitle="All published bulletins and official updates regarding Ganesh Puja and community meetings."
+                badge={t('updates.circulars.badge')}
+                title={t('updates.circulars.title')}
+                subtitle={t('updates.circulars.subtitle')}
                 className="mb-0 sm:mb-0"
               />
 
@@ -92,37 +95,37 @@ export const UpdatesPage: React.FC = () => {
               <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-sm w-full">
                 <input
                   type="text"
-                  placeholder="Search circulars..."
+                  placeholder={t('updates.search.placeholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                 />
                 <Button type="submit" variant="primary" size="sm">
-                  Search
+                  {t('updates.search.button')}
                 </Button>
                 {activeSearch && (
                   <Button type="button" variant="ghost" size="sm" onClick={handleClearSearch}>
-                    Clear
+                    {t('updates.search.clear')}
                   </Button>
                 )}
               </form>
             </div>
 
             {loading ? (
-              <LoadingState message="Loading club notices..." />
+              <LoadingState message={t('updates.loading')} />
             ) : error ? (
               <ErrorState
-                title="Unable to load updates"
+                title={t('updates.error')}
                 message={error}
                 onRetry={fetchUpdates}
               />
             ) : updates.length === 0 ? (
               <EmptyState
-                title={activeSearch ? "No circulars found matching your search." : "No updates available yet."}
+                title={activeSearch ? t('updates.emptySearch.title') : t('updates.empty.title')}
                 description={
                   activeSearch
-                    ? "Try searching for a different keyword or clear the search filter."
-                    : "Official announcements, festival schedules, and executive circulars will appear here as they are published by Mahaveer Youth Club Banza."
+                    ? t('updates.emptySearch.desc')
+                    : t('updates.empty.desc')
                 }
               />
             ) : (
@@ -160,7 +163,7 @@ export const UpdatesPage: React.FC = () => {
                       </div>
 
                       <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs font-semibold text-orange-600">
-                        <span>Read Full Circular</span>
+                        <span>{t('updates.card.readFull')}</span>
                         <span>→</span>
                       </div>
                     </article>
@@ -176,10 +179,10 @@ export const UpdatesPage: React.FC = () => {
                       disabled={page <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                     >
-                      Previous
+                      {t('common.previous')}
                     </Button>
                     <span className="text-xs text-stone-600 px-3">
-                      Page {page} of {totalPages}
+                      {t('common.pageOf', { page, totalPages })}
                     </span>
                     <Button
                       variant="outline"
@@ -187,7 +190,7 @@ export const UpdatesPage: React.FC = () => {
                       disabled={page >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     >
-                      Next
+                      {t('common.next')}
                     </Button>
                   </div>
                 )}
@@ -255,7 +258,7 @@ export const UpdatesPage: React.FC = () => {
 
             <div className="pt-4 border-t border-stone-100 flex justify-end">
               <Button variant="outline" size="sm" onClick={() => setSelectedUpdate(null)}>
-                Close Notice
+                {t('updates.modal.close')}
               </Button>
             </div>
           </div>

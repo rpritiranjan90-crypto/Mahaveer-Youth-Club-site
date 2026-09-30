@@ -3,6 +3,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { Badge } from '../ui/Badge';
 import { GalleryLightbox } from './GalleryLightbox';
 import { GalleryPhoto } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface GalleryGridProps {
   photos?: GalleryPhoto[];
@@ -23,6 +24,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
   onYearChange,
   onCategoryChange,
 }) => {
+  const { t } = useLanguage();
   const [internalYear, setInternalYear] = useState<string>('All');
   const [internalCategory, setInternalCategory] = useState<string>('All');
   const [activePhoto, setActivePhoto] = useState<GalleryPhoto | null>(null);
@@ -53,7 +55,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
         {/* Year Filter */}
         <div className="flex items-center flex-wrap gap-2">
           <span className="text-xs font-bold text-stone-500 uppercase tracking-wider mr-1">
-            Year:
+            {t('celebrations.filter.year')}
           </span>
           {availableYears.map((year) => (
             <button
@@ -66,7 +68,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
-              {year}
+              {year === 'All' ? t('common.all') : year}
             </button>
           ))}
         </div>
@@ -74,7 +76,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
         {/* Category Filter */}
         <div className="flex items-center flex-wrap gap-2">
           <span className="text-xs font-bold text-stone-500 uppercase tracking-wider mr-1">
-            Category:
+            {t('celebrations.filter.category')}
           </span>
           {availableCategories.map((category) => (
             <button
@@ -87,7 +89,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
-              {category}
+              {category === 'All' ? t('common.all') : category}
             </button>
           ))}
         </div>
@@ -96,8 +98,8 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
       {/* Grid or Empty State */}
       {photos.length === 0 ? (
         <EmptyState
-          title="No celebration photos found."
-          description="Official photos from past and current Ganesh Chaturthi celebrations and community initiatives will appear here as they are published."
+          title={t('celebrations.empty.title')}
+          description={t('celebrations.empty.desc')}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">

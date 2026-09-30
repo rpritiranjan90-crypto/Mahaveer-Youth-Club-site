@@ -5,8 +5,11 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useLanguage } from '../context/LanguageContext';
 
 export const NotFoundPage: React.FC = () => {
+  const { t } = useLanguage();
+
   usePageMeta({
     title: '404 — Page Not Found',
     description: 'The requested page route could not be found.',
@@ -20,15 +23,15 @@ export const NotFoundPage: React.FC = () => {
             <Badge variant="error">ERROR 404</Badge>
           </div>
           <h1 className="text-3xl font-extrabold text-stone-900 tracking-tight mb-2">
-            Page Not Found
+            {t('notFound.title')}
           </h1>
           <p className="text-sm text-stone-600 max-w-sm mx-auto leading-relaxed mb-6">
-            The page you are looking for might have been moved, renamed, or is temporarily unavailable.
+            {t('notFound.desc')}
           </p>
 
           <Link to="/">
             <Button variant="primary" size="lg" className="font-bold">
-              ← Return to Home
+              {t('notFound.returnHome')}
             </Button>
           </Link>
         </Card>
