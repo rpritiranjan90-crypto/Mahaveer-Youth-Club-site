@@ -42,3 +42,9 @@ logs/
 tmp/
 scratch/
 uploads/
+
+# Local SQLite & Databases
+*.db
+*.sqlite
+*.sqlite3
+

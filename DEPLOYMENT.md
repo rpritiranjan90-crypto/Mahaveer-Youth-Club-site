@@ -34,30 +34,29 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Create `/opt/mahaveer-club/backend/.env`:
 ```env
 # Application Environment
-ENVIRONMENT=production
-DEBUG=False
-PROJECT_NAME="Mahaveer Youth Club API"
+APP_ENV=production
+APP_DEBUG=false
+APP_NAME="Mahaveer Youth Club Banza API"
 API_V1_STR=/api/v1
 
-# Security & Secrets (GENERATE UNIQUE IN PRODUCTION)
+# Security & Secrets (GENERATE UNIQUE IN PRODUCTION - min 32 chars)
 SECRET_KEY=replace_with_at_least_32_characters_random_hex_or_base64_string
-ACCESS_TOKEN_EXPIRE_MINUTES=480
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
 
-# Production Database (PostgreSQL)
+# Production Database (PostgreSQL 16)
 DATABASE_URL=postgresql://mahaveer_admin:YOUR_SECURE_DB_PASSWORD@localhost:5432/mahaveer_db
 
-# CORS Configuration (Only allowed production domains, comma-separated)
-CORS_ORIGINS=https://mahaveeryouthclub.org,https://www.mahaveeryouthclub.org
+# CORS Configuration (Only allowed production domains)
+CORS_ORIGINS=["https://mahaveeryouthclub.org","https://www.mahaveeryouthclub.org"]
 
 # File Storage Configuration
 UPLOAD_DIR=/opt/mahaveer-club/backend/uploads
-MAX_UPLOAD_SIZE_MB=5
-ALLOWED_EXTENSIONS=["jpg", "jpeg", "png", "webp"]
+MAX_UPLOAD_SIZE_BYTES=5242880
 
 # Initial Admin Bootstrap (Optional first-run bootstrap; unset after initial setup)
-FIRST_RUN_ADMIN_USERNAME=admin
-FIRST_RUN_ADMIN_EMAIL=admin@mahaveeryouthclub.org
-FIRST_RUN_ADMIN_PASSWORD=REPLACE_WITH_STRONG_INITIAL_PASSWORD
+FIRST_SUPERUSER_EMAIL=official-admin@mahaveeryouthclub.org
+FIRST_SUPERUSER_PASSWORD=REPLACE_WITH_STRONG_INITIAL_PASSWORD
 ```
 
 ### B. Frontend Production Environment (`frontend/.env.production`)
