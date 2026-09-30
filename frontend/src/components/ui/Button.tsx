@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'white' | 'white-outline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles =
     'inline-flex items-center justify-center font-medium rounded-lg btn-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
-  const variantStyles = {
+  const variantStyles: Record<ButtonVariant, string> = {
     primary:
       'bg-orange-600 text-white hover:bg-orange-700 focus-visible:ring-orange-500 shadow-sm active:bg-orange-800',
     secondary:
@@ -33,6 +33,10 @@ export const Button: React.FC<ButtonProps> = ({
       'text-stone-700 hover:bg-stone-100 focus-visible:ring-stone-400',
     danger:
       'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+    white:
+      'bg-white text-stone-900 hover:bg-stone-100 focus-visible:ring-white shadow-md active:bg-stone-200',
+    'white-outline':
+      'border-2 border-white/80 bg-transparent text-white hover:bg-white/15 hover:border-white focus-visible:ring-white shadow-sm',
   };
 
   const sizeStyles = {

@@ -41,21 +41,21 @@ export const CTASection: React.FC<CTASectionProps> = ({
             {description}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to={primaryAction.to}>
+            <Link to={primaryAction.to} className="w-full sm:w-auto">
               <Button
-                variant="primary"
+                variant="white"
                 size="lg"
-                className="w-full sm:w-auto bg-white text-stone-900 hover:bg-stone-100 font-bold shadow-md"
+                className="w-full sm:w-auto font-bold shadow-md"
               >
                 {primaryAction.label}
               </Button>
             </Link>
             {secondaryAction && (
-              <Link to={secondaryAction.to}>
+              <Link to={secondaryAction.to} className="w-full sm:w-auto">
                 <Button
-                  variant="outline"
+                  variant="white-outline"
                   size="lg"
-                  className="w-full sm:w-auto text-white border-white/40 hover:bg-white/10"
+                  className="w-full sm:w-auto font-semibold"
                 >
                   {secondaryAction.label}
                 </Button>
