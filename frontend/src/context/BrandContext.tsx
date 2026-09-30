@@ -13,10 +13,24 @@ export interface BrandContextType {
   refreshGanesh: () => Promise<void>;
 }
 
+const DEFAULT_LOGO: SiteAsset = {
+  id: 1,
+  asset_type: 'LOGO',
+  image_url: '/images/official_club_logo.png',
+  storage_path: '/images/official_club_logo.png',
+  original_filename: 'official_club_logo.png',
+  mime_type: 'image/png',
+  file_size: 210399,
+  width: 320,
+  height: 320,
+  is_active: true,
+  created_at: '2026-09-30T00:00:00Z',
+};
+
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
 
 export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [logo, setLogo] = useState<SiteAsset | null>(null);
+  const [logo, setLogo] = useState<SiteAsset | null>(DEFAULT_LOGO);
   const [logoLoading, setLogoLoading] = useState<boolean>(true);
   const [logoError, setLogoError] = useState<boolean>(false);
 
@@ -31,8 +45,9 @@ export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const data = await apiService.getPublicLogo();
       setLogo(data);
     } catch {
-      setLogo(null);
-      setLogoError(true);
+      // Keep DEFAULT_LOGO if backend has no custom uploaded logo yet
+      setLogo(DEFAULT_LOGO);
+      setLogoError(false);
     } finally {
       setLogoLoading(false);
     }
