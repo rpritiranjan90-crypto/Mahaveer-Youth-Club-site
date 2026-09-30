@@ -11,7 +11,7 @@ def test_phase2():
 
     # 1. Check Backend Health
     try:
-        req = urllib.request.urlopen("http://localhost:8000/api/v1/health", timeout=5)
+        req = urllib.request.urlopen("http://127.0.0.1:8000/api/v1/health", timeout=5)
         data = json.loads(req.read().decode('utf-8'))
         assert data.get("status") == "ok"
         print("[PASS] Backend /api/v1/health: OK (200, status=ok)")
@@ -21,7 +21,7 @@ def test_phase2():
 
     # 2. Check Backend Readiness (or offline DB reporting 503 as designed)
     try:
-        req = urllib.request.urlopen("http://localhost:8000/api/v1/ready", timeout=5)
+        req = urllib.request.urlopen("http://127.0.0.1:8000/api/v1/ready", timeout=5)
         data = json.loads(req.read().decode('utf-8'))
         assert data.get("status") == "ready"
         print("[PASS] Backend /api/v1/ready: OK (200, status=ready, database=connected)")
@@ -37,10 +37,10 @@ def test_phase2():
 
     # 3. Check Frontend Server
     try:
-        req = urllib.request.urlopen("http://localhost:5173/", timeout=5)
+        req = urllib.request.urlopen("http://127.0.0.1:5173/", timeout=5)
         html = req.read().decode('utf-8')
         assert "Mahaveer Youth Club" in html
-        print("[PASS] Frontend Dev Server http://localhost:5173/: OK (200)")
+        print("[PASS] Frontend Dev Server http://127.0.0.1:5173/: OK (200)")
     except Exception as e:
         print(f"[FAIL] Frontend Dev Server failed: {e}")
         sys.exit(1)

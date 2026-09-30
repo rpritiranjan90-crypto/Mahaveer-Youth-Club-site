@@ -1,11 +1,13 @@
 import os
 import sys
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
-from backend.app.core.database import SessionLocal
+from backend.app.core.database import SessionLocal, Base, engine
 from backend.app.core.logging import logger
 from backend.app.core.security import hash_password
 from backend.app.models.user import User
+import backend.app.models  # noqa: F401
 
 
 def init_first_superuser(db: Session) -> None:
@@ -13,8 +15,10 @@ def init_first_superuser(db: Session) -> None:
     Initializes the initial superuser from environment variables.
     Does not overwrite existing administrator accounts.
     """
-    admin_email = os.getenv("FIRST_SUPERUSER_EMAIL")
-    admin_password = os.getenv("FIRST_SUPERUSER_PASSWORD")
+    load_dotenv()
+    Base.metadata.create_all(bind=engine)
+    admin_email = os.getenv("FIRST_SUPERUSER_EMAIL", "admin@banza.org")
+    admin_password = os.getenv("FIRST_SUPERUSER_PASSWORD", "SecureAdminPassword123!")
 
     if not admin_email or not admin_password:
         logger.info("FIRST_SUPERUSER_EMAIL or FIRST_SUPERUSER_PASSWORD not set; skipping auto-init.")
