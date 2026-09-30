@@ -30,8 +30,6 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
       return;
     }
 
-    const targets = rootNode.querySelectorAll<HTMLElement>('.reveal-on-scroll, .reveal-scale');
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -46,21 +44,42 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
       { threshold, rootMargin }
     );
 
-    if (targets.length > 0) {
+    const checkAndObserve = () => {
+      if (!containerRef.current) return;
+      const targets = containerRef.current.querySelectorAll<HTMLElement>('.reveal-on-scroll, .reveal-scale');
       targets.forEach((el) => {
-        // Immediate check: If element is within or above the viewport on load, reveal immediately
+        if (el.classList.contains('is-revealed')) return;
         const rect = el.getBoundingClientRect();
+        // If element is already in or above viewport, reveal immediately
         if (rect.top < window.innerHeight + 100) {
           el.classList.add('is-revealed');
         } else {
           observer.observe(el);
         }
       });
-    } else {
-      observer.observe(rootNode);
-    }
+    };
+
+    // Run initial scan
+    checkAndObserve();
+
+    // Listen to dynamic DOM mutations (when async data like members or gallery loads)
+    const mutationObserver = new MutationObserver(() => {
+      checkAndObserve();
+    });
+
+    mutationObserver.observe(rootNode, {
+      childList: true,
+      subtree: true,
+    });
+
+    // Timeout safety scan
+    const timer1 = setTimeout(checkAndObserve, 60);
+    const timer2 = setTimeout(checkAndObserve, 250);
 
     return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      mutationObserver.disconnect();
       observer.disconnect();
     };
   }, [threshold, rootMargin, triggerOnce]);
