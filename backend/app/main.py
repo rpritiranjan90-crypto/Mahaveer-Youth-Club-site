@@ -1,135 +1,144 @@
-import os
 from contextlib import asynccontextmanager
-from pathlib import Path
+from typing import AsyncGenerator
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.app.core.config import settings
-from backend.app.core.database import SessionLocal
-from backend.app.core.init_db import init_db
 from backend.app.core.logging import logger
 from backend.app.api.v1.api import api_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     """
-    Application lifespan manager for startup and shutdown events.
+    Application lifecycle management.
+    Logs technical startup and shutdown events safely.
     """
-    logger.info("Starting %s (v%s) in [%s] mode...", settings.PROJECT_NAME, settings.API_VERSION, settings.API_ENV)
-    
-    # Initialize DB schema and seed default admin user
-    if SessionLocal:
-        try:
-            db = SessionLocal()
-            try:
-                init_db(db)
-            finally:
-                db.close()
-        except Exception as e:
-            logger.warning("DB Initialization note: %s", str(e))
-
-    yield
-    logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    logger.info("Starting %s in [%s] environment...", settings.APP_NAME, settings.APP_ENV)
+    try:
+        yield
+    finally:
+        logger.info("Shutting down %s gracefully...", settings.APP_NAME)
 
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.API_VERSION,
-    description="REST API backend for Mahaveer Youth Club Ganesh Puja & Community Portal",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.API_ENV != "production" else None,
-    docs_url=f"{settings.API_V1_STR}/docs" if settings.API_ENV != "production" else None,
-    redoc_url=f"{settings.API_V1_STR}/redoc" if settings.API_ENV != "production" else None,
+    title=settings.APP_NAME,
+    version="1.0.0",
+    docs_url=f"{settings.API_V1_STR}/docs",
+    redoc_url=f"{settings.API_V1_STR}/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan,
 )
 
-# CORS Configuration
-if settings.CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# -----------------------------------------------------------------------------
+# Security Headers Middleware (Rule 31)
+# -----------------------------------------------------------------------------
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
 
-# Static Files for Uploads
-upload_path = Path(settings.UPLOAD_DIR).resolve()
-upload_path.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+# -----------------------------------------------------------------------------
+# CORS Configuration (Strict origins)
+# -----------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(origin) for origin in settings.CORS_ORIGINS],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 
 # -----------------------------------------------------------------------------
-# Global Error Handling
+# Centralized Error Handlers (Rule 12 & 33: Standardized error responses, zero secret leakage)
 # -----------------------------------------------------------------------------
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+async def http_exception_handler(_: Request, exc: StarletteHTTPException) -> JSONResponse:
     """
-    Standardized JSON response for HTTP exceptions.
+    Standardized handler for HTTPExceptions.
     """
+    code_map = {
+        status.HTTP_400_BAD_REQUEST: "BAD_REQUEST",
+        status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+        status.HTTP_403_FORBIDDEN: "FORBIDDEN",
+        status.HTTP_404_NOT_FOUND: "NOT_FOUND",
+        status.HTTP_422_UNPROCESSABLE_ENTITY: "UNPROCESSABLE_ENTITY",
+        status.HTTP_429_TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+        status.HTTP_500_INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+        status.HTTP_503_SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
+    }
+    error_code = code_map.get(exc.status_code, f"HTTP_{exc.status_code}")
+    message = exc.detail if isinstance(exc.detail, str) else "A request error occurred."
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": {
-                "code": exc.status_code,
-                "message": exc.detail,
-            }
-        },
+        content={"error": {"code": error_code, "message": message}},
     )
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
     """
-    Standardized JSON response for schema validation errors.
+    Standardized handler for Pydantic request validation errors.
     """
+    logger.warning("Request validation error: %s", str(exc.errors()))
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "error": {
-                "code": 422,
-                "message": "Validation Error",
-                "details": exc.errors(),
+                "code": "VALIDATION_ERROR",
+                "message": "The submitted request data failed schema validation.",
             }
         },
     )
 
 
 @app.exception_handler(Exception)
-async def generic_exception_handler(request: Request, exc: Exception):
+async def unhandled_exception_handler(_: Request, exc: Exception) -> JSONResponse:
     """
-    Catch-all handler for unhandled exceptions.
-    Prevents raw tracebacks from leaking to clients.
+    Catches all unhandled exceptions, logs detailed context securely,
+    and returns a clean generic error response without exposing internal paths or SQL.
     """
-    logger.error("Unhandled Exception at %s: %s", request.url.path, str(exc), exc_info=True)
+    logger.error("Unhandled server exception: %s", str(exc), exc_info=settings.APP_DEBUG)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": {
-                "code": 500,
-                "message": "An unexpected internal server error occurred. Please contact the administrator.",
+                "code": "INTERNAL_SERVER_ERROR",
+                "message": "An unexpected server error occurred. Please try again later.",
             }
         },
     )
 
 
 # -----------------------------------------------------------------------------
-# Route Registration
+# Static Media Mount & API Router Mount
 # -----------------------------------------------------------------------------
-app.include_router(api_router, prefix=settings.API_V1_STR)
+from fastapi.staticfiles import StaticFiles
+from backend.app.services.storage import get_upload_dir
 
+upload_dir = get_upload_dir()
+app.mount("/uploads", StaticFiles(directory=str(upload_dir), html=False), name="uploads")
 
-@app.get("/", tags=["Root"])
-def root():
-    """
-    Root endpoint for quick connectivity check.
-    """
+@app.get("/", summary="Root Health Ping", tags=["System Health"])
+def root() -> dict:
     return {
-        "message": f"Welcome to {settings.PROJECT_NAME}",
+        "app": settings.APP_NAME,
+        "status": "ok",
+        "docs": f"{settings.API_V1_STR}/docs",
         "health": f"{settings.API_V1_STR}/health",
-        "docs": f"{settings.API_V1_STR}/docs" if settings.API_ENV != "production" else None,
     }
+
+
+app.include_router(api_router, prefix=settings.API_V1_STR)

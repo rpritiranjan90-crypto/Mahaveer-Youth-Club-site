@@ -4,131 +4,114 @@ import { Container } from './Container';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-white border-t border-[#E9DED1] text-[#241A17] pt-12 pb-8">
+    <footer className="bg-stone-900 text-stone-300 mt-auto border-t border-stone-800 text-left">
       <Container size="lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 text-left">
-          {/* Col 1: About Club */}
-          <div className="flex flex-col space-y-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl" role="img" aria-label="Ganesh">🐘</span>
-              <span className="font-extrabold text-base text-[#241A17] tracking-tight">
-                MAHAVEER YOUTH CLUB
+        <div className="py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* 1. Organization Information */}
+          <div className="space-y-3 md:col-span-2">
+            <div className="flex items-center space-x-3">
+              <span
+                className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-base shadow-sm"
+                aria-hidden="true"
+              >
+                MYC
               </span>
+              <div>
+                <span className="text-white font-bold text-lg tracking-tight block">
+                  Mahaveer Youth Club Banza
+                </span>
+                <span className="text-xs text-orange-400 font-semibold">
+                  Established 2012
+                </span>
+              </div>
             </div>
-            <p className="text-xs sm:text-sm text-[#6B625D] leading-relaxed">
-              Celebrating faith, tradition, and youth community welfare since 1998. Dedicated to cultural preservation, annual Ganesh Utsav, and social service.
+            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed max-w-md">
+              A grassroots community organization in Banza committed to devotional celebrations of Ganesh Chaturthi, youth unity, and neighborhood welfare seva.
             </p>
-            <div className="pt-2 flex items-center space-x-3 text-[#8B1E1E]">
-              <span className="text-xs font-semibold bg-[#FEE2E2] px-2.5 py-1 rounded-full border border-[#FCA5A5]">
-                Ganpati Bappa Morya 🙏
-              </span>
+            <div className="pt-1 text-xs text-stone-500 font-mono">
+              [OFFICIAL ADDRESS — TO BE PROVIDED]
             </div>
           </div>
 
-          {/* Col 2: Quick Links */}
+          {/* 2. Public Navigation */}
           <div>
-            <h4 className="text-sm font-bold text-[#241A17] tracking-wider uppercase mb-3">
-              Quick Links
-            </h4>
-            <ul className="space-y-2 text-xs sm:text-sm text-[#6B625D]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-200 mb-3">
+              Explore Website
+            </h3>
+            <ul className="space-y-2 text-xs">
               <li>
-                <Link to="/" className="hover:text-[#F97316] transition-colors">
+                <Link to="/" className="text-stone-400 hover:text-white transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="hover:text-[#F97316] transition-colors">
-                  About Our Club
+                <Link to="/about" className="text-stone-400 hover:text-white transition-colors">
+                  About the Club
                 </Link>
               </li>
               <li>
-                <Link to="/history" className="hover:text-[#F97316] transition-colors">
-                  Our History & Milestones
+                <Link to="/history" className="text-stone-400 hover:text-white transition-colors">
+                  History & Chronicle
                 </Link>
               </li>
               <li>
-                <Link to="/puja" className="hover:text-[#F97316] transition-colors">
-                  Puja & Activities
+                <Link to="/members" className="text-stone-400 hover:text-white transition-colors">
+                  Our Members
                 </Link>
               </li>
               <li>
-                <Link to="/gallery" className="hover:text-[#F97316] transition-colors">
-                  Photo & Video Gallery
+                <Link to="/celebrations" className="text-stone-400 hover:text-white transition-colors">
+                  Celebrations & Gallery
                 </Link>
               </li>
               <li>
-                <Link to="/updates" className="hover:text-[#F97316] transition-colors">
-                  Latest Updates & Notices
+                <Link to="/activities" className="text-stone-400 hover:text-white transition-colors">
+                  Community Activities
+                </Link>
+              </li>
+              <li>
+                <Link to="/updates" className="text-stone-400 hover:text-white transition-colors">
+                  Updates & Bulletins
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Support & Contact Placeholders */}
+          {/* 3. Seva & Contact Shortcuts */}
           <div>
-            <h4 className="text-sm font-bold text-[#241A17] tracking-wider uppercase mb-3">
-              Contact & Location
-            </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-[#6B625D]">
-              <li className="flex items-start space-x-2">
-                <span className="text-[#F97316] mt-0.5">📍</span>
-                <span>Club Address Placeholder, Ward No. 12, Main Pandal Ground, India</span>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-200 mb-3">
+              Seva & Contact
+            </h3>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link to="/donate" className="text-orange-400 hover:text-orange-300 font-semibold transition-colors">
+                  Donation & Seva Info →
+                </Link>
               </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-[#F97316]">📞</span>
-                <span>+91 XXXXX XXXXX</span>
+              <li>
+                <Link to="/contact" className="text-stone-400 hover:text-white transition-colors">
+                  Contact Committee
+                </Link>
               </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-[#F97316]">✉️</span>
-                <span>club@example.com</span>
-              </li>
-              <li className="pt-2">
-                <Link
-                  to="/donate"
-                  className="inline-flex items-center text-xs font-bold text-[#F97316] hover:underline"
-                >
-                  Contribute Online (UPI QR) →
+              <li>
+                <Link to="/admin" className="text-stone-500 hover:text-stone-400 transition-colors">
+                  Admin Portal (Phase 1 Shell)
                 </Link>
               </li>
             </ul>
-          </div>
-
-          {/* Col 4: Community & Social Links */}
-          <div>
-            <h4 className="text-sm font-bold text-[#241A17] tracking-wider uppercase mb-3">
-              Community Channels
-            </h4>
-            <p className="text-xs text-[#6B625D] mb-3">
-              Stay connected with live festival broadcasts and event highlights:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <a
-                href="#instagram-placeholder"
-                className="px-3 py-1.5 rounded-md text-xs font-medium bg-[#FBF4EA] hover:bg-[#FFEDD5] text-[#241A17] hover:text-[#F97316] border border-[#E9DED1] transition-colors"
-              >
-                📷 Instagram
-              </a>
-              <a
-                href="#facebook-placeholder"
-                className="px-3 py-1.5 rounded-md text-xs font-medium bg-[#FBF4EA] hover:bg-[#FFEDD5] text-[#241A17] hover:text-[#F97316] border border-[#E9DED1] transition-colors"
-              >
-                👥 Facebook
-              </a>
-              <a
-                href="#youtube-placeholder"
-                className="px-3 py-1.5 rounded-md text-xs font-medium bg-[#FBF4EA] hover:bg-[#FFEDD5] text-[#241A17] hover:text-[#F97316] border border-[#E9DED1] transition-colors"
-              >
-                ▶️ YouTube Live
-              </a>
+            <div className="mt-6 pt-4 border-t border-stone-800">
+              <span className="inline-block px-2.5 py-1 rounded bg-stone-800 border border-stone-700 text-[11px] font-mono text-stone-400">
+                Community Portal V2
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Copyright & Disclaimer */}
-        <div className="pt-8 border-t border-[#F2E8DC] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#6B625D]">
-          <p>© 2026 Ganesh Puja Club — Mahaveer Youth Club. All rights reserved.</p>
-          <p className="text-[11px] text-[#8C827C]">
-            Phase 2 Design System & UI Foundation • Traditional Indian Festival × Modern Minimal
+        {/* Bottom Copyright Bar */}
+        <div className="border-t border-stone-800/80 py-6 text-xs text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p>© {new Date().getFullYear()} Mahaveer Youth Club Banza. All rights reserved.</p>
+          <p className="text-[11px] text-stone-600">
+            Phase 2: Public Website Experience
           </p>
         </div>
       </Container>

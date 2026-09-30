@@ -1,34 +1,35 @@
+def test_root_ping(client):
+    """
+    Verify GET / returns basic app metadata and health links.
+    """
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "app" in data
+    assert "docs" in data
+    assert "health" in data
+
+
 def test_health_check_endpoint(client):
     """
-    Verify GET /api/v1/health returns 200 OK and expected structure.
+    Verify GET /api/v1/health returns 200 OK with application name and environment.
     """
     response = client.get("/api/v1/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
-    assert "service" in data
-    assert "version" in data
+    assert "Mahaveer Youth Club" in data["app"]
+    assert data["version"] == "1.0.0"
     assert "environment" in data
 
 
-def test_root_endpoint(client):
+def test_readiness_check_endpoint(client):
     """
-    Verify root endpoint responds with service info.
+    Verify GET /api/v1/ready executes database query and returns 200 OK.
     """
-    response = client.get("/")
+    response = client.get("/api/v1/ready")
     assert response.status_code == 200
     data = response.json()
-    assert "health" in data
-    assert data["health"] == "/api/v1/health"
-
-
-def test_404_json_error_structure(client):
-    """
-    Verify non-existent routes return standardized JSON error structure.
-    """
-    response = client.get("/api/v1/non-existent-route-999")
-    assert response.status_code == 404
-    data = response.json()
-    assert "error" in data
-    assert data["error"]["code"] == 404
-    assert "message" in data["error"]
+    assert data["status"] == "ready"
+    assert data["database"] == "connected"

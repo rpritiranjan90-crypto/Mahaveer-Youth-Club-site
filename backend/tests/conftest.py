@@ -1,23 +1,25 @@
 import os
+os.environ["APP_ENV"] = "testing"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["API_ENV"] = "testing"
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from backend.app.core.config import settings
 settings.DATABASE_URL = "sqlite:///:memory:"
+settings.APP_ENV = "testing"
 
 from backend.app.core.database import Base, get_db
 import backend.app.core.database as db_module
-from backend.app.core.init_db import init_db
-from backend.app.core.security import create_access_token
+from backend.app.core.rate_limit import login_rate_limiter
+from backend.app.core.security import hash_password
+from backend.app.main import app
 from backend.app.models.user import User
 
-# In-memory SQLite test database with StaticPool so all connections share the same memory DB
-from sqlalchemy.pool import StaticPool
+# In-memory SQLite test database with StaticPool
 test_engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},
@@ -25,11 +27,8 @@ test_engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-# Point db_module SessionLocal and engine to test_engine
 db_module.engine = test_engine
 db_module.SessionLocal = TestingSessionLocal
-
-from backend.app.main import app
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -38,10 +37,18 @@ def setup_test_db():
     Initializes database schema once for test session.
     """
     Base.metadata.create_all(bind=test_engine)
-    db = TestingSessionLocal()
-    init_db(db)
     yield
     Base.metadata.drop_all(bind=test_engine)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_rate_limiter():
+    """
+    Clears rate limiter state before each test.
+    """
+    login_rate_limiter.clear_all()
+    yield
+    login_rate_limiter.clear_all()
 
 
 @pytest.fixture(scope="function")
@@ -77,18 +84,37 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture(scope="function")
-def admin_token(db_session) -> str:
+@pytest.fixture
+def test_admin_user(db_session) -> User:
     """
-    Returns valid admin Bearer token for test authorization.
+    Creates a standard active test admin user.
     """
-    admin = db_session.query(User).filter(User.email == "admin@mahaveeryouthclub.org").first()
-    return create_access_token(subject=admin.id, role="admin")
+    user = User(
+        email="admin@banza.org",
+        password_hash=hash_password("SecureAdminPassword123!"),
+        is_active=True,
+        is_admin=True,
+        totp_enabled=False,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
 
 
-@pytest.fixture(scope="function")
-def admin_headers(admin_token: str) -> dict:
+@pytest.fixture
+def test_non_admin_user(db_session) -> User:
     """
-    Returns Authorization headers with valid admin Bearer token.
+    Creates a non-admin active user.
     """
-    return {"Authorization": f"Bearer {admin_token}"}
+    user = User(
+        email="volunteer@banza.org",
+        password_hash=hash_password("VolunteerPass123!"),
+        is_active=True,
+        is_admin=False,
+        totp_enabled=False,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user

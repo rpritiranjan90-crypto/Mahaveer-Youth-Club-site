@@ -1,19 +1,16 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Spinner } from '../components/ui/Spinner';
+import { LoadingState } from '../components/ui/LoadingState';
 
 export const ProtectedRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white space-y-4">
-        <Spinner size="lg" color="saffron" />
-        <p className="text-sm text-slate-400 font-medium animate-pulse">
-          Authenticating secure administrator portal...
-        </p>
+      <div className="min-h-screen flex items-center justify-center bg-stone-100">
+        <LoadingState message="Verifying administrative session..." />
       </div>
     );
   }

@@ -1,11 +1,24 @@
 export interface HealthStatus {
   status: string;
-  service: string;
+  app: string;
   version: string;
   environment: string;
 }
 
-export interface NavRoute {
-  path: string;
-  name: string;
+export interface ReadyStatus {
+  status: string;
+  database: string;
 }
+
+export interface ApiError {
+  code: string;
+  message: string;
+  status?: number;
+}
+
+export interface NavRoute {
+  name: string;
+  path: string;
+}
+
+export * from './content';

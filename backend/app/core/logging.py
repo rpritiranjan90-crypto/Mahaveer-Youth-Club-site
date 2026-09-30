@@ -1,28 +1,24 @@
 import logging
 import sys
-from backend.app.core.config import settings
 
-def setup_logging() -> logging.Logger:
+
+def setup_logger(name: str = "mahaveer_club") -> logging.Logger:
     """
-    Configures structured standard logging for the application.
-    Ensures safe formatting without sensitive data leakage.
+    Configures a structured, clean logger.
+    Ensures safe formatting without leaking sensitive credentials.
     """
-    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    date_format = "%Y-%m-%d %H:%M:%S"
-
-    log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
-
-    logging.basicConfig(
-        level=log_level,
-        format=log_format,
-        datefmt=date_format,
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-
-    logger = logging.getLogger("mahaveer_club")
-    logger.setLevel(log_level)
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter(
+            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.propagate = False
     return logger
 
-logger = setup_logging()
+
+logger = setup_logger()

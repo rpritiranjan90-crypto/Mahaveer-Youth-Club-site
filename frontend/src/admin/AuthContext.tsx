@@ -1,94 +1,123 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authApi, getToken, removeToken } from './api';
+import { apiService } from '../services/api';
 
-export interface AdminUser {
+export interface UserProfile {
   id: number;
-  name: string;
   email: string;
-  role: string;
-  is_active: boolean;
+  is_admin: boolean;
+  totp_enabled: boolean;
+  last_login_at?: string;
+  created_at: string;
+}
+
+export interface LoginResult {
+  requires_2fa: boolean;
+  challenge_token?: string;
+  access_token?: string;
+  user?: UserProfile;
 }
 
 interface AuthContextType {
-  user: AdminUser | null;
   token: string | null;
+  user: UserProfile | null;
+  loading: boolean;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  verify2FA: (challengeToken: string, code: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_KEY = 'myc_admin_access_token';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [token, setTokenState] = useState<string | null>(getToken());
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [token, setToken] = useState<string | null>(() => {
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+  });
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const refreshUser = useCallback(async () => {
-    const currentToken = getToken();
-    if (!currentToken) {
+    if (!token) {
       setUser(null);
-      setTokenState(null);
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
 
     try {
-      const userData = await authApi.getMe();
-      setUser(userData);
-      setTokenState(currentToken);
+      const profile = await apiService.getMe(token);
+      setUser(profile);
     } catch {
-      removeToken();
+      // Token is invalid/expired
+      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      setToken(null);
       setUser(null);
-      setTokenState(null);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const res = await authApi.login(email, password);
-      setTokenState(res.access_token);
-      const userData = await authApi.getMe();
-      setUser(userData);
-    } finally {
-      setIsLoading(false);
+  const login = async (email: string, password: string): Promise<LoginResult> => {
+    const res = await apiService.login(email, password);
+    if (!res.requires_2fa && res.access_token) {
+      sessionStorage.setItem(TOKEN_KEY, res.access_token);
+      setToken(res.access_token);
+      if (res.user) {
+        setUser(res.user);
+      }
     }
+    return res;
   };
 
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await authApi.logout();
-    } catch {
-      // Ignore logout request errors if token was already invalid
-    } finally {
-      removeToken();
-      setUser(null);
-      setTokenState(null);
-      setIsLoading(false);
+  const verify2FA = async (challengeToken: string, code: string): Promise<LoginResult> => {
+    const res = await apiService.verify2FA(challengeToken, code);
+    if (res.access_token) {
+      sessionStorage.setItem(TOKEN_KEY, res.access_token);
+      setToken(res.access_token);
+      if (res.user) {
+        setUser(res.user);
+      }
     }
+    return res;
   };
 
-  const value: AuthContextType = {
-    user,
-    token,
-    isAuthenticated: !!user && !!token,
-    isLoading,
-    login,
-    logout,
-    refreshUser,
+  const logout = async (): Promise<void> => {
+    if (token) {
+      try {
+        await apiService.logout(token);
+      } catch {
+        // Ignore errors on logout
+      }
+    }
+    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    setUser(null);
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        loading,
+        isAuthenticated: !!token && !!user && user.is_admin,
+        login,
+        verify2FA,
+        logout,
+        refreshUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {

@@ -1,0 +1,20 @@
+# ==============================================================================
+# Mahaveer Youth Club Banza — Search Engine Robots Policy
+# ==============================================================================
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /history
+Allow: /members
+Allow: /celebrations
+Allow: /activities
+Allow: /updates
+Allow: /donate
+Allow: /contact
+
+# Disallow administrative management areas & internal APIs
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://mahaveeryouthclub.org/sitemap.xml

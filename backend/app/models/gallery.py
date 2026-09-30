@@ -1,29 +1,27 @@
-from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, func
 from backend.app.core.database import Base
 
 
-class Gallery(Base):
+class GalleryItem(Base):
     """
-    Photo and media gallery model.
+    Festival photo archives and celebration gallery model.
+    Dynamic year support without hardcoding.
     """
-    __tablename__ = "gallery"
+    __tablename__ = "gallery_items"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
     image_url = Column(String(500), nullable=False)
-    category = Column(String(100), default="Pandal", nullable=False)
-    year = Column(String(20), default="2026", nullable=False)
-    published = Column(Boolean, default=True, index=True, nullable=False)
-    sort_order = Column(Integer, default=0, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-        nullable=False,
-    )
+    thumbnail_url = Column(String(500), nullable=True)
+    year = Column(String(10), nullable=False, index=True)  # Dynamic stored year (e.g. "2026", "2027")
+    category = Column(String(100), nullable=False, default="Ganesh Puja", index=True)
+    alt_text = Column(String(255), nullable=False, default="")
+    status = Column(String(20), nullable=False, default="draft", index=True)
+
+    published_at = Column(DateTime(timezone=True), nullable=True)
+    archived_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<Gallery id={self.id} title={self.title} year={self.year}>"
+        return f"<GalleryItem id={self.id} title={self.title!r} year={self.year!r} status={self.status!r}>"

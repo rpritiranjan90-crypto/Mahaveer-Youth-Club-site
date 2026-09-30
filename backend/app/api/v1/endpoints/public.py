@@ -1,140 +1,277 @@
+import math
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import desc, distinct, func
 
 from backend.app.core.database import get_db
-from backend.app.models.club import ClubSettings
 from backend.app.models.update import Update
-from backend.app.models.gallery import Gallery
 from backend.app.models.activity import Activity
-from backend.app.models.history import History
-from backend.app.models.donation import DonationSetting
-
-from backend.app.schemas.club import ClubSettingsResponse
-from backend.app.schemas.update import UpdateResponse
-from backend.app.schemas.gallery import GalleryResponse
-from backend.app.schemas.activity import ActivityResponse
-from backend.app.schemas.history import HistoryResponse
-from backend.app.schemas.donation import DonationSettingResponse
+from backend.app.models.gallery import GalleryItem
+from backend.app.models.member import Member
+from backend.app.schemas.content import (
+    PaginatedResponse,
+    UpdatePublicResponse,
+    ActivityPublicResponse,
+    GalleryItemPublicResponse,
+    GalleryYearsResponse,
+    GalleryCategoriesResponse,
+    MemberPublicResponse,
+)
 
 router = APIRouter()
 
 
-@router.get("/club", response_model=ClubSettingsResponse, summary="Get Public Club Info")
-def get_public_club_info(db: Session = Depends(get_db)) -> ClubSettings:
-    """
-    Returns public club information and contact details.
-    """
-    club = db.query(ClubSettings).first()
-    if not club:
-        # Create initial default if not exists
-        club = ClubSettings(
-            name="Mahaveer Youth Club",
-            tagline="Celebrating Faith, Tradition & Community",
-            description="A community-driven non-profit youth organization established in 1998.",
-            location="Mahaveer Youth Club Ground, Ward No. 12",
-            address="Main Pandal Ground, Near Community Hall, Ward No. 12",
-            landmark="Near Community Hall",
-            phone="+91 XXXXX XXXXX",
-            email="contact@mahaveeryouthclub.org",
-            registration_number="MYC/SOC/1998/412",
-            instagram_url="https://instagram.com/mahaveeryouthclub",
-            facebook_url="https://facebook.com/mahaveeryouthclub",
-            youtube_url="https://youtube.com/@mahaveeryouthclub",
-        )
-        db.add(club)
-        db.commit()
-        db.refresh(club)
-    return club
-
-
-@router.get("/updates", response_model=List[UpdateResponse], summary="List Published Updates")
+# =============================================================================
+# 1. Public Updates Endpoints
+# =============================================================================
+@router.get(
+    "/updates",
+    response_model=PaginatedResponse[UpdatePublicResponse],
+    summary="List Published Updates",
+)
 def get_public_updates(
-    category: Optional[str] = None,
-    limit: int = 20,
-    db: Session = Depends(get_db)
-) -> List[Update]:
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page"),
+    search: Optional[str] = Query(None, max_length=100, description="Search by title/excerpt"),
+    db: Session = Depends(get_db),
+) -> PaginatedResponse[UpdatePublicResponse]:
     """
-    Returns published announcements and notices.
+    Returns only published circulars and updates, ordered by newest published date.
+    Draft and archived items are strictly excluded.
     """
-    query = db.query(Update).filter(Update.published == True)
-    if category and category.lower() != "all":
-        query = query.filter(Update.category.ilike(f"%{category}%"))
-    return query.order_by(Update.published_at.desc(), Update.id.desc()).limit(limit).all()
+    query = db.query(Update).filter(Update.status == "published")
 
-
-@router.get("/updates/{slug}", response_model=UpdateResponse, summary="Get Published Update by Slug")
-def get_public_update_by_slug(slug: str, db: Session = Depends(get_db)) -> Update:
-    """
-    Returns single published announcement by slug.
-    """
-    update = db.query(Update).filter(Update.slug == slug, Update.published == True).first()
-    if not update:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Announcement not found.",
+    if search:
+        search_pattern = f"%{search.strip()}%"
+        query = query.filter(
+            (Update.title.ilike(search_pattern)) | (Update.excerpt.ilike(search_pattern))
         )
-    return update
 
+    total = query.count()
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
 
-@router.get("/gallery", response_model=List[GalleryResponse], summary="List Published Gallery Photos")
-def get_public_gallery(
-    category: Optional[str] = None,
-    year: Optional[str] = None,
-    db: Session = Depends(get_db)
-) -> List[Gallery]:
-    """
-    Returns published gallery photos sorted by sort order and creation time.
-    """
-    query = db.query(Gallery).filter(Gallery.published == True)
-    if category and category.lower() != "all":
-        query = query.filter(Gallery.category.ilike(f"%{category}%"))
-    if year and year.lower() != "all":
-        query = query.filter(Gallery.year == year)
-    return query.order_by(Gallery.sort_order.asc(), Gallery.created_at.desc()).all()
-
-
-@router.get("/activities", response_model=List[ActivityResponse], summary="List Published Activities")
-def get_public_activities(
-    category: Optional[str] = None,
-    db: Session = Depends(get_db)
-) -> List[Activity]:
-    """
-    Returns published festival rituals, welfare events, and sports activities.
-    """
-    query = db.query(Activity).filter(Activity.published == True)
-    if category and category.lower() != "all":
-        query = query.filter(Activity.category.ilike(f"%{category}%"))
-    return query.order_by(Activity.id.asc()).all()
-
-
-@router.get("/history", response_model=List[HistoryResponse], summary="List Published History Timeline")
-def get_public_history(db: Session = Depends(get_db)) -> List[History]:
-    """
-    Returns published club history milestones in chronological order.
-    """
-    return (
-        db.query(History)
-        .filter(History.published == True)
-        .order_by(History.sort_order.asc(), History.year.asc())
+    items = (
+        query.order_by(desc(Update.published_at), desc(Update.created_at))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
         .all()
     )
 
+    return PaginatedResponse(
+        items=[UpdatePublicResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
-@router.get("/donation", response_model=DonationSettingResponse, summary="Get Public Donation Info")
-def get_public_donation_info(db: Session = Depends(get_db)) -> DonationSetting:
+
+@router.get(
+    "/updates/{slug}",
+    response_model=UpdatePublicResponse,
+    summary="Get Published Update by Slug",
+)
+def get_public_update_by_slug(
+    slug: str,
+    db: Session = Depends(get_db),
+) -> UpdatePublicResponse:
     """
-    Returns public donation settings (official club name, UPI ID, suggested amounts).
+    Fetches a single published update by unique slug.
+    Draft or archived updates return 404.
     """
-    setting = db.query(DonationSetting).first()
-    if not setting:
-        setting = DonationSetting(
-            club_name="Mahaveer Youth Club",
-            upi_id="mahaveeryouthclub@upi",
-            description="Your voluntary contribution directly powers our daily Maha Bhog, Vedic pandal construction, and annual blood donation camps.",
-            suggested_amounts="101,501,1001,2001",
+    item = db.query(Update).filter(Update.slug == slug, Update.status == "published").first()
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Update not found or not published.",
         )
-        db.add(setting)
-        db.commit()
-        db.refresh(setting)
-    return setting
+    return UpdatePublicResponse.model_validate(item)
+
+
+# =============================================================================
+# 2. Public Activities Endpoints
+# =============================================================================
+@router.get(
+    "/activities",
+    response_model=PaginatedResponse[ActivityPublicResponse],
+    summary="List Published Activities",
+)
+def get_public_activities(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page"),
+    category: Optional[str] = Query(None, max_length=100, description="Filter by category"),
+    db: Session = Depends(get_db),
+) -> PaginatedResponse[ActivityPublicResponse]:
+    """
+    Returns only published welfare and club activities, ordered by date.
+    Draft and archived items are strictly excluded.
+    """
+    query = db.query(Activity).filter(Activity.status == "published")
+
+    if category and category.lower() != "all":
+        query = query.filter(Activity.category.ilike(category.strip()))
+
+    total = query.count()
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
+
+    items = (
+        query.order_by(desc(Activity.date), desc(Activity.published_at))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return PaginatedResponse(
+        items=[ActivityPublicResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
+
+
+@router.get(
+    "/activities/{slug}",
+    response_model=ActivityPublicResponse,
+    summary="Get Published Activity by Slug",
+)
+def get_public_activity_by_slug(
+    slug: str,
+    db: Session = Depends(get_db),
+) -> ActivityPublicResponse:
+    """
+    Fetches a single published activity by unique slug.
+    Draft or archived activities return 404.
+    """
+    item = db.query(Activity).filter(Activity.slug == slug, Activity.status == "published").first()
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Activity not found or not published.",
+        )
+    return ActivityPublicResponse.model_validate(item)
+
+
+# =============================================================================
+# 3. Public Gallery Endpoints
+# =============================================================================
+@router.get(
+    "/gallery",
+    response_model=PaginatedResponse[GalleryItemPublicResponse],
+    summary="List Published Gallery Photos",
+)
+def get_public_gallery(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(50, ge=1, le=100, description="Items per page"),
+    year: Optional[str] = Query(None, max_length=10, description="Filter by festival year"),
+    category: Optional[str] = Query(None, max_length=100, description="Filter by category"),
+    db: Session = Depends(get_db),
+) -> PaginatedResponse[GalleryItemPublicResponse]:
+    """
+    Returns published gallery photos filtered by dynamic year and category.
+    Draft and archived photos are strictly excluded.
+    """
+    query = db.query(GalleryItem).filter(GalleryItem.status == "published")
+
+    if year and year.lower() != "all":
+        query = query.filter(GalleryItem.year == year.strip())
+
+    if category and category.lower() != "all":
+        query = query.filter(GalleryItem.category.ilike(category.strip()))
+
+    total = query.count()
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
+
+    items = (
+        query.order_by(desc(GalleryItem.year), desc(GalleryItem.created_at))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return PaginatedResponse(
+        items=[GalleryItemPublicResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
+
+
+@router.get(
+    "/gallery/years",
+    response_model=GalleryYearsResponse,
+    summary="Get Available Gallery Years",
+)
+def get_gallery_years(db: Session = Depends(get_db)) -> GalleryYearsResponse:
+    """
+    Dynamically returns all distinct years present in published gallery items,
+    sorted in descending order. Never hardcoded.
+    """
+    years = (
+        db.query(distinct(GalleryItem.year))
+        .filter(GalleryItem.status == "published")
+        .order_by(desc(GalleryItem.year))
+        .all()
+    )
+    year_list = [y[0] for y in years if y[0]]
+    return GalleryYearsResponse(years=year_list)
+
+
+@router.get(
+    "/gallery/categories",
+    response_model=GalleryCategoriesResponse,
+    summary="Get Available Gallery Categories",
+)
+def get_gallery_categories(db: Session = Depends(get_db)) -> GalleryCategoriesResponse:
+    """
+    Dynamically returns all distinct categories present in published gallery items.
+    """
+    categories = (
+        db.query(distinct(GalleryItem.category))
+        .filter(GalleryItem.status == "published")
+        .order_by(GalleryItem.category.asc())
+        .all()
+    )
+    category_list = [c[0] for c in categories if c[0]]
+    return GalleryCategoriesResponse(categories=category_list)
+
+
+# =============================================================================
+# 4. Public Members Roster Endpoint
+# =============================================================================
+@router.get(
+    "/members",
+    response_model=PaginatedResponse[MemberPublicResponse],
+    summary="List Public Member Nicknames",
+)
+def get_public_members(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(100, ge=1, le=200, description="Items per page"),
+    db: Session = Depends(get_db),
+) -> PaginatedResponse[MemberPublicResponse]:
+    """
+    Returns visible members sorted by sort_order.
+    PRIVACY ENFORCED: Exposes ONLY display_name (public nickname), role, and sort_order.
+    Zero private contact details, emails, phones, or photos.
+    """
+    query = db.query(Member).filter(Member.is_visible == True)
+
+    total = query.count()
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
+
+    items = (
+        query.order_by(Member.sort_order.asc(), Member.id.asc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return PaginatedResponse(
+        items=[MemberPublicResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )

@@ -1,45 +1,44 @@
 import React from 'react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'saffron' | 'maroon' | 'gold' | 'success' | 'error' | 'warning' | 'neutral';
-  size?: 'sm' | 'md';
-  icon?: React.ReactNode;
+export type BadgeVariant =
+  | 'saffron'
+  | 'maroon'
+  | 'slate'
+  | 'green'
+  | 'amber'
+  | 'warning'
+  | 'neutral'
+  | 'error'
+  | 'success';
+
+export interface BadgeProps {
+  variant?: BadgeVariant;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
-  className,
   variant = 'saffron',
-  size = 'md',
-  icon,
   children,
-  ...props
+  className = '',
 }) => {
-  const baseStyles = 'inline-flex items-center font-semibold rounded-full select-none';
-
-  const sizeStyles = {
-    sm: 'text-[11px] px-2 py-0.5 gap-1 tracking-wide',
-    md: 'text-xs px-2.5 py-1 gap-1.5',
-  };
-
-  const variantStyles = {
-    saffron: 'bg-[#FFEDD5] text-[#C2410C] border border-[#FDBA74]',
-    maroon: 'bg-[#FEE2E2] text-[#8B1E1E] border border-[#FCA5A5]',
-    gold: 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]',
-    success: 'bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]',
-    error: 'bg-[#FEE2E2] text-[#B91C1C] border border-[#FCA5A5]',
-    warning: 'bg-[#FEF3C7] text-[#B45309] border border-[#FCD34D]',
-    neutral: 'bg-[#F6EDE1] text-[#6B625D] border border-[#E9DED1]',
+  const variantStyles: Record<BadgeVariant, string> = {
+    saffron: 'bg-orange-50 text-orange-800 border-orange-200',
+    maroon: 'bg-rose-50 text-rose-900 border-rose-200',
+    slate: 'bg-stone-100 text-stone-700 border-stone-200',
+    green: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    amber: 'bg-amber-50 text-amber-800 border-amber-200',
+    warning: 'bg-amber-50 text-amber-800 border-amber-200',
+    neutral: 'bg-stone-100 text-stone-700 border-stone-200',
+    error: 'bg-rose-50 text-rose-900 border-rose-200',
+    success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   };
 
   return (
     <span
-      className={twMerge(clsx(baseStyles, sizeStyles[size], variantStyles[variant], className))}
-      {...props}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${variantStyles[variant]} ${className}`}
     >
-      {icon && <span className="inline-flex shrink-0">{icon}</span>}
-      <span>{children}</span>
+      {children}
     </span>
   );
 };

@@ -30,7 +30,11 @@ print('2. Public club:', get(f'{BASE}/public/club'))
 print('3. Public updates:', get(f'{BASE}/public/updates'))
 print('4. Public donation:', get(f'{BASE}/public/donation'))
 
-status, login_res = post(f'{BASE}/auth/login', {'email': 'admin@mahaveeryouthclub.org', 'password': 'AdminPassword123!'})
+import os
+EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@mahaveeryouthclub.org')
+PASSWORD = os.environ.get('ADMIN_PASSWORD', 'TestAdminPass123!')
+
+status, login_res = post(f'{BASE}/auth/login', {'email': EMAIL, 'password': PASSWORD})
 print('5. Admin Login:', status, 'token received:', bool(login_res.get('access_token')))
 token = login_res.get('access_token')
 

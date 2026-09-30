@@ -31,8 +31,16 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
-# Set sqlalchemy.url from our settings if not explicitly passed
-db_url = config.get_main_option("sqlalchemy.url") or settings.DATABASE_URL
+# Resolve database URL from -x args, settings, or alembic config
+x_args = context.get_x_argument(as_dictionary=True)
+db_url = x_args.get("db_url")
+if not db_url:
+    ini_url = config.get_main_option("sqlalchemy.url")
+    if ini_url and not ini_url.startswith("driver://"):
+        db_url = ini_url
+    else:
+        db_url = settings.DATABASE_URL
+
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
 

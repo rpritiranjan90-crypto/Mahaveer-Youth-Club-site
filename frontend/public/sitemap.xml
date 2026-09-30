@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- About Us -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- History -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/history</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Members -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/members</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Celebrations -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/celebrations</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Activities -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/activities</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Updates -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/updates</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Donate -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/donate</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Contact -->
+  <url>
+    <loc>https://mahaveeryouthclub.org/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>

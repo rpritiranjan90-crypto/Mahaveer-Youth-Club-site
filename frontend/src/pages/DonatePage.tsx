@@ -1,123 +1,150 @@
 import React from 'react';
 import { Container } from '../components/layout/Container';
 import { Section } from '../components/layout/Section';
-import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
-import { Alert } from '../components/ui/Alert';
-import { DonationUI } from '../components/content/DonationUI';
-import { clubInfo } from '../data/club';
-import { usePageMeta } from '../utils/seo';
+import { Badge } from '../components/ui/Badge';
+import { SectionHeader } from '../components/content/SectionHeader';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export const DonatePage: React.FC = () => {
   usePageMeta({
-    title: `Donate & Support — ${clubInfo.name}`,
-    description: `Support ${clubInfo.name} Ganesh Utsav festivities, Maha Anna Seva, and annual voluntary blood donation drives via official UPI QR code.`,
+    title: 'Donation & Contributions — Mahaveer Youth Club Banza',
+    description: 'Informational guide for voluntary contributions to Mahaveer Youth Club Banza Sri Ganesh Puja and welfare initiatives.',
   });
 
   return (
-    <div className="space-y-0 text-left">
-      {/* 1. Page Header */}
-      <div className="bg-gradient-to-b from-[#FFF8EE] to-[#FFEDD5]/30 border-b border-[#E9DED1] py-12 sm:py-16">
+    <div>
+      {/* Page Header */}
+      <section className="bg-gradient-to-b from-orange-50/50 to-[#FCFBF9] py-12 sm:py-16 border-b border-stone-200">
         <Container size="lg">
           <div className="max-w-3xl">
-            <Badge variant="maroon" size="md" className="mb-3 font-bold uppercase tracking-wider">
-              VOLUNTARY CONTRIBUTION
-            </Badge>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#241A17] tracking-tight">
-              Support Our Puja & Community Seva
+            <div className="flex items-center gap-2 mb-3">
+              <Badge variant="saffron">DONATIONS & SEVA</Badge>
+              <Badge variant="neutral">VOLUNTARY CONTRIBUTIONS</Badge>
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight mb-3">
+              Support Our Community Initiatives
             </h1>
-            <p className="text-base sm:text-lg text-[#6B625D] mt-4 leading-relaxed">
-              Every voluntary rupee contributed directly empowers our 10-day Vedic rituals, community Maha Bhog distribution, and annual youth blood donation camps.
+            <p className="text-base sm:text-lg text-stone-600 leading-relaxed">
+              Voluntary contributions directly support our annual Sri Ganesh Puja, prasad distribution, pandal arrangements, and neighborhood welfare seva in Banza.
             </p>
           </div>
         </Container>
-      </div>
+      </section>
 
-      {/* 2. Official UPI QR Section */}
-      <Section
-        eyebrow="DIRECT UPI CONTRIBUTION"
-        title="Official Club UPI QR Donation"
-        description="Scan using Google Pay, PhonePe, Paytm, BHIM, or any certified UPI app on your mobile."
-        align="center"
-        background="white"
-      >
-        <DonationUI
-          clubName={clubInfo.name}
-          upiId={clubInfo.upiId}
-        />
-      </Section>
+      {/* Main Donation Guidelines */}
+      <Section background="default" size="lg">
+        <Container size="lg">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <SectionHeader
+              badge="CONTRIBUTION MODES"
+              title="How You Can Contribute"
+              subtitle="All contributions are received with gratitude and utilized transparently for festival arrangements and charitable activities."
+              align="center"
+            />
 
-      {/* 3. Trust & Safety Guidelines */}
-      <Section
-        eyebrow="TRANSPARENCY & TRUST"
-        title="Important Verification & Safety Guidelines"
-        description="We uphold 100% financial discipline and public accountability."
-        align="left"
-      >
-        <div className="space-y-6">
-          <Alert variant="warning" title="Recipient Verification Notice">
-            Please verify that the payee name shown in your UPI payment app displays <strong>{clubInfo.name}</strong> ({clubInfo.upiId}) before entering your UPI PIN and confirming payment.
-          </Alert>
+            {/* Recipient Verification Warning */}
+            <div className="p-4 sm:p-5 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl shadow-2xs">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl shrink-0" aria-hidden="true">⚠️</span>
+                <div>
+                  <h3 className="text-sm font-bold text-amber-900">
+                    Important Recipient Verification Notice
+                  </h3>
+                  <p className="text-xs sm:text-sm text-amber-800 mt-1 leading-relaxed">
+                    Please verify the recipient name shown in your UPI app before completing the payment.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-6 bg-white border border-[#E9DED1]">
-              <span className="text-2xl mb-2 inline-block">🍲</span>
-              <h3 className="text-base font-bold text-[#241A17] mb-1.5">Where Your Seva Goes</h3>
-              <p className="text-xs sm:text-sm text-[#6B625D] leading-relaxed">
-                100% of collected funds are allocated directly to sacred Prasad ingredients, Vedic pandal artisans, cultural staging, and blood camp logistics.
-              </p>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              {/* Mode 1: Digital UPI Payment */}
+              <Card className="p-6 sm:p-8 bg-white border border-stone-200 space-y-6">
+                <div className="flex items-center space-x-3 border-b border-stone-100 pb-4">
+                  <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-lg">
+                    📱
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-stone-900 text-lg">1. UPI Digital Payment</h3>
+                    <p className="text-xs text-stone-500">Fast & direct mobile transfer</p>
+                  </div>
+                </div>
 
-            <Card className="p-6 bg-white border border-[#E9DED1]">
-              <span className="text-2xl mb-2 inline-block">📜</span>
-              <h3 className="text-base font-bold text-[#241A17] mb-1.5">Digital Receipt Issuance</h3>
-              <p className="text-xs sm:text-sm text-[#6B625D] leading-relaxed">
-                By providing your 12-digit transaction UTR number above, your contribution is logged for official receipt verification by the club treasurer.
-              </p>
-            </Card>
+                {/* QR Code Placeholder Box */}
+                <div className="flex flex-col items-center justify-center p-8 bg-stone-50 rounded-xl border-2 border-dashed border-stone-300 text-center space-y-3">
+                  <div className="w-40 h-40 bg-stone-200 rounded-lg flex flex-col items-center justify-center p-3 text-stone-500 text-xs text-center border border-stone-300">
+                    <span className="text-3xl mb-1" aria-hidden="true">📷</span>
+                    <span className="font-semibold text-stone-600">
+                      [OFFICIAL UPI QR — TO BE PROVIDED]
+                    </span>
+                  </div>
+                  <span className="text-xs text-stone-500">
+                    Scan using any UPI App (GPay, PhonePe, Paytm, BHIM)
+                  </span>
+                </div>
 
-            <Card className="p-6 bg-white border border-[#E9DED1]">
-              <span className="text-2xl mb-2 inline-block">📊</span>
-              <h3 className="text-base font-bold text-[#241A17] mb-1.5">Audited Accounts</h3>
-              <p className="text-xs sm:text-sm text-[#6B625D] leading-relaxed">
-                Annual financial statements and expenditure audit ledgers are publicly presented to all community members and patrons following festival conclusion.
-              </p>
-            </Card>
+                {/* Official UPI ID Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
+                    Official Club UPI ID
+                  </label>
+                  <div className="p-3 bg-stone-100 rounded-lg border border-stone-200 text-center font-mono text-sm font-bold text-stone-800 select-all">
+                    [OFFICIAL UPI ID — TO BE PROVIDED]
+                  </div>
+                </div>
+              </Card>
+
+              {/* Mode 2: Cash & In-Person Contribution */}
+              <Card className="p-6 sm:p-8 bg-white border border-stone-200 space-y-6">
+                <div className="flex items-center space-x-3 border-b border-stone-100 pb-4">
+                  <span className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-lg">
+                    💵
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-stone-900 text-lg">2. Cash / Direct Chanda</h3>
+                    <p className="text-xs text-stone-500">In-person pandal donations</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                    <h4 className="font-bold text-stone-900 text-sm mb-1">
+                      Pandal Counter Guidance
+                    </h4>
+                    <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                      Cash donations may be handed over to authorized club seniors at the pandal.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 text-xs text-stone-600 leading-relaxed">
+                    <h5 className="font-bold text-stone-800 uppercase tracking-wide">
+                      What your contribution supports:
+                    </h5>
+                    <ul className="space-y-1.5 list-disc list-inside">
+                      <li>Sri Ganesh murti installation and daily rituals</li>
+                      <li>Community prasad distribution (Bhog seva)</li>
+                      <li>Pandal decoration, sound, and lighting arrangements</li>
+                      <li>Neighborhood cleanliness and social seva drives</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 bg-orange-50/60 rounded-lg border border-orange-200/80 text-xs text-orange-900">
+                    <p className="font-semibold mb-0.5">Physical Chanda Receipts:</p>
+                    <p className="text-orange-800">
+                      Authorized senior members issue physical counterfoil receipts for all in-person contributions at the puja mandap.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* General Policy Note */}
+            <div className="p-6 bg-stone-100 rounded-xl border border-stone-200 text-center text-xs text-stone-600 max-w-2xl mx-auto">
+              Mahaveer Youth Club Banza expresses sincere thanks to all well-wishers and village devotees for their continuous support.
+            </div>
           </div>
-        </div>
-      </Section>
-
-      {/* 4. Alternative Bank Transfer Info */}
-      <Section
-        eyebrow="OFFLINE & BANK TRANSFER"
-        title="Direct Bank Account Transfer (NEFT / RTGS / IMPS)"
-        description="For larger sponsorship contributions or organization patrons requiring direct bank ledger transfers."
-        align="center"
-        background="white"
-      >
-        <div className="max-w-xl mx-auto">
-          <Card className="p-6 bg-[#FFF8EE] border border-[#E9DED1] text-left space-y-3 text-xs sm:text-sm text-[#241A17]">
-            <div className="flex justify-between py-1.5 border-b border-[#E9DED1]">
-              <span className="text-[#6B625D]">Account Name:</span>
-              <strong className="font-semibold">{clubInfo.name}</strong>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-[#E9DED1]">
-              <span className="text-[#6B625D]">Account Number:</span>
-              <strong className="font-mono font-semibold">XXXXXXXXXXXX</strong>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-[#E9DED1]">
-              <span className="text-[#6B625D]">IFSC Code:</span>
-              <strong className="font-mono font-semibold">SBIN000XXXX</strong>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-[#E9DED1]">
-              <span className="text-[#6B625D]">Bank & Branch:</span>
-              <strong className="font-semibold">State Bank of India, Main Branch</strong>
-            </div>
-            <p className="text-[11px] text-[#6B625D] pt-2 italic text-center">
-              Please email your transaction confirmation screenshot to <strong>{clubInfo.email}</strong> for formal receipt generation.
-            </p>
-          </Card>
-        </div>
+        </Container>
       </Section>
     </div>
   );

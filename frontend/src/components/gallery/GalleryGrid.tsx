@@ -1,67 +1,146 @@
 import React, { useState } from 'react';
-import { GalleryCard, GalleryItem } from './GalleryCard';
-import { ImageViewer } from './ImageViewer';
+import { EmptyState } from '../ui/EmptyState';
+import { Badge } from '../ui/Badge';
+import { GalleryLightbox } from './GalleryLightbox';
+import { GalleryPhoto } from '../../types';
 
 export interface GalleryGridProps {
-  items: GalleryItem[];
-  categories?: string[];
+  photos?: GalleryPhoto[];
+  availableYears?: string[];
+  availableCategories?: string[];
+  selectedYear?: string;
+  selectedCategory?: string;
+  onYearChange?: (year: string) => void;
+  onCategoryChange?: (category: string) => void;
 }
 
 export const GalleryGrid: React.FC<GalleryGridProps> = ({
-  items,
-  categories = ['All', 'Pandal', 'Rituals', 'Cultural', 'Social Work'],
+  photos = [],
+  availableYears = ['All'],
+  availableCategories = ['All'],
+  selectedYear = 'All',
+  selectedCategory = 'All',
+  onYearChange,
+  onCategoryChange,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [internalYear, setInternalYear] = useState<string>('All');
+  const [internalCategory, setInternalCategory] = useState<string>('All');
+  const [activePhoto, setActivePhoto] = useState<GalleryPhoto | null>(null);
 
-  const filteredItems =
-    activeCategory === 'All'
-      ? items
-      : items.filter((item) => item.category.toLowerCase() === activeCategory.toLowerCase());
+  const currentYear = onYearChange ? selectedYear : internalYear;
+  const currentCategory = onCategoryChange ? selectedCategory : internalCategory;
+
+  const handleYearClick = (year: string) => {
+    if (onYearChange) {
+      onYearChange(year);
+    } else {
+      setInternalYear(year);
+    }
+  };
+
+  const handleCategoryClick = (cat: string) => {
+    if (onCategoryChange) {
+      onCategoryChange(cat);
+    } else {
+      setInternalCategory(cat);
+    }
+  };
 
   return (
-    <div className="w-full">
-      {/* Category Filter Pills */}
-      {categories && categories.length > 0 && (
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-          {categories.map((cat) => {
-            const isActive = activeCategory.toLowerCase() === cat.toLowerCase();
+    <div className="space-y-8">
+      {/* Filter controls */}
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-stone-200 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Year Filter */}
+        <div className="flex items-center flex-wrap gap-2">
+          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider mr-1">
+            Year:
+          </span>
+          {availableYears.map((year) => (
+            <button
+              key={year}
+              type="button"
+              onClick={() => handleYearClick(year)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                currentYear === year
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+              }`}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex items-center flex-wrap gap-2">
+          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider mr-1">
+            Category:
+          </span>
+          {availableCategories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => handleCategoryClick(category)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                currentCategory === category
+                  ? 'bg-stone-900 text-white shadow-xs'
+                  : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid or Empty State */}
+      {photos.length === 0 ? (
+        <EmptyState
+          title="No celebration photos found."
+          description="Official photos from past and current Ganesh Chaturthi celebrations and community initiatives will appear here as they are published."
+        />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {photos.map((photo) => {
+            const thumbUrl = photo.thumbnail_url || photo.image_url || photo.url || '';
             return (
               <button
-                key={cat}
+                key={photo.id}
                 type="button"
-                onClick={() => setActiveCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  isActive
-                    ? 'bg-[#8B1E1E] text-white shadow-xs'
-                    : 'bg-white text-[#6B625D] hover:bg-[#FBF4EA] hover:text-[#241A17] border border-[#E9DED1]'
-                }`}
+                onClick={() => setActivePhoto(photo)}
+                className="group relative bg-stone-100 rounded-xl overflow-hidden border border-stone-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-orange-500 text-left transition-all hover:shadow-md hover:border-orange-300"
               >
-                {cat}
+                <div className="aspect-4/3 overflow-hidden bg-stone-200">
+                  <img
+                    src={thumbUrl}
+                    alt={photo.alt_text || photo.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-3 bg-white">
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <Badge variant="saffron">{photo.year}</Badge>
+                    <span className="text-[11px] text-stone-500 font-medium">
+                      {photo.category}
+                    </span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-bold text-stone-900 line-clamp-1">
+                    {photo.title}
+                  </h4>
+                </div>
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Responsive Grid: 2 cols on mobile, 3 on tablet, 4 on desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
-        {filteredItems.map((item) => (
-          <GalleryCard key={item.id} item={item} onClick={(it) => setSelectedItem(it)} />
-        ))}
-      </div>
-
-      {filteredItems.length === 0 && (
-        <div className="text-center py-12 text-sm text-[#6B625D]">
-          No photos found in this category.
-        </div>
-      )}
-
       {/* Lightbox Modal */}
-      <ImageViewer
-        item={selectedItem}
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
+      <GalleryLightbox
+        photo={activePhoto}
+        photos={photos}
+        onClose={() => setActivePhoto(null)}
+        onSelectPhoto={setActivePhoto}
       />
     </div>
   );

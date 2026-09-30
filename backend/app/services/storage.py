@@ -1,104 +1,176 @@
 import os
 import uuid
-import mimetypes
 from pathlib import Path
-from typing import Tuple
-from fastapi import UploadFile, HTTPException, status
+from typing import Tuple, Optional
+from fastapi import HTTPException, UploadFile, status
+from PIL import Image
+import io
+
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
+
+# Magic byte signatures for image types
+MAGIC_BYTES = {
+    "image/jpeg": [b"\xFF\xD8\xFF"],
+    "image/png": [b"\x89PNG\r\n\x1a\n"],
+    "image/webp": [b"RIFF"],  # With 'WEBP' at offset 8
+}
+
+ALLOWED_EXTENSIONS = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
+
+
+def get_upload_dir() -> Path:
+    """
+    Returns the resolved absolute path to the uploads directory.
+    Ensures directory exists.
+    """
+    base_dir = Path(os.getcwd())
+    upload_path = (base_dir / settings.UPLOAD_DIR).resolve()
+    upload_path.mkdir(parents=True, exist_ok=True)
+    return upload_path
+
+
+def validate_image_file(file_bytes: bytes, declared_content_type: Optional[str]) -> Tuple[str, str]:
+    """
+    Validates image content size, magic bytes signature, and structure.
+    Returns (validated_mime_type, file_extension).
+    Raises HTTPException on validation failure.
+    """
+    # 1. Size check
+    if len(file_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty.",
+        )
+
+    if len(file_bytes) > settings.MAX_UPLOAD_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Uploaded file exceeds the maximum permitted size of {settings.MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)}MB.",
+        )
+
+    # 2. Magic byte check
+    detected_mime: Optional[str] = None
+    for mime, signatures in MAGIC_BYTES.items():
+        for sig in signatures:
+            if file_bytes.startswith(sig):
+                if mime == "image/webp":
+                    if len(file_bytes) >= 12 and file_bytes[8:12] == b"WEBP":
+                        detected_mime = mime
+                        break
+                else:
+                    detected_mime = mime
+                    break
+        if detected_mime:
+            break
+
+    if not detected_mime or detected_mime not in settings.ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported image format. Allowed formats: JPEG, PNG, WebP.",
+        )
+
+    # 3. Integrity verification with Pillow
+    try:
+        image = Image.open(io.BytesIO(file_bytes))
+        image.verify()
+    except Exception as e:
+        logger.warning("Image verification failed: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The uploaded file is not a valid or corrupted image.",
+        )
+
+    ext = ALLOWED_EXTENSIONS[detected_mime]
+    return detected_mime, ext
 
 
 class StorageService:
     """
-    Abstract storage service for secure local media file management.
-    Validates MIME types, extensions, size constraints, and prevents path traversal.
+    Secure file storage service for gallery images and featured media.
+    Handles path traversal protection, UUID naming, and thumbnail creation.
     """
 
-    def __init__(self, base_dir: str = settings.UPLOAD_DIR):
-        self.base_dir = Path(base_dir).resolve()
-        self.base_dir.mkdir(parents=True, exist_ok=True)
-
-    def validate_file(self, filename: str, content_type: str, file_size: int) -> Tuple[bool, str]:
+    @staticmethod
+    def save_image(
+        file_bytes: bytes,
+        content_type: Optional[str] = None,
+        subfolder: str = "gallery",
+    ) -> Tuple[str, Optional[str]]:
         """
-        Validates filename, extension, MIME type, and size limits.
+        Validates, saves the image, and generates a thumbnail.
+        Returns (image_url, thumbnail_url).
         """
-        if not filename or ".." in filename or "/" in filename or "\\" in filename:
-            return False, "Invalid filename or potential path traversal detected."
+        detected_mime, ext = validate_image_file(file_bytes, content_type)
 
-        ext = Path(filename).suffix.lower()
-        if ext not in settings.ALLOWED_IMAGE_EXTENSIONS:
-            return False, f"File extension '{ext}' is not allowed. Supported extensions: {', '.join(settings.ALLOWED_IMAGE_EXTENSIONS)}"
-
-        # Verify MIME type
-        guessed_type, _ = mimetypes.guess_type(filename)
-        mime = content_type or guessed_type or ""
-        if mime.lower() not in settings.ALLOWED_IMAGE_MIME_TYPES:
-            return False, f"MIME type '{mime}' is not allowed. Supported types: {', '.join(settings.ALLOWED_IMAGE_MIME_TYPES)}"
-
-        if file_size > settings.MAX_UPLOAD_SIZE_BYTES:
-            max_mb = settings.MAX_UPLOAD_SIZE_BYTES / (1024 * 1024)
-            return False, f"File size exceeds maximum allowed limit of {max_mb} MB."
-
-        return True, ""
-
-    async def save_image(self, file: UploadFile) -> Tuple[str, str, int]:
-        """
-        Reads, validates, and securely stores an uploaded image.
-        Returns (stored_filename, public_url, file_size).
-        """
-        # Read content to check size
-        content = await file.read()
-        file_size = len(content)
-
-        is_valid, error_msg = self.validate_file(
-            filename=file.filename or "",
-            content_type=file.content_type or "",
-            file_size=file_size,
-        )
-
-        if not is_valid:
+        upload_root = get_upload_dir()
+        target_dir = (upload_root / subfolder).resolve()
+        
+        # Verify no path traversal outside upload_root
+        if not str(target_dir).startswith(str(upload_root)):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error_msg,
+                detail="Invalid upload destination.",
             )
+        target_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate secure random filename
-        ext = Path(file.filename or "").suffix.lower()
-        safe_name = f"{uuid.uuid4().hex}{ext}"
-        destination = self.base_dir / safe_name
+        # Generate safe server-side UUID filename
+        file_id = uuid.uuid4().hex
+        main_filename = f"{file_id}{ext}"
+        thumb_filename = f"{file_id}_thumb{ext}"
 
+        main_path = target_dir / main_filename
+        thumb_path = target_dir / thumb_filename
+
+        # Write original image
+        with open(main_path, "wb") as f:
+            f.write(file_bytes)
+
+        # Generate thumbnail
+        thumbnail_url = None
         try:
-            with open(destination, "wb") as f:
-                f.write(content)
-            logger.info("Saved image upload: %s (%d bytes)", safe_name, file_size)
+            image = Image.open(io.BytesIO(file_bytes))
+            # Convert RGBA to RGB for JPEG
+            if detected_mime == "image/jpeg" and image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
+            
+            image.thumbnail((600, 600), Image.Resampling.LANCZOS)
+            image.save(thumb_path, optimize=True, quality=85)
+            thumbnail_url = f"/uploads/{subfolder}/{thumb_filename}"
         except Exception as e:
-            logger.error("Failed to write uploaded file: %s", str(e))
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not save uploaded file.",
-            )
+            logger.warning("Thumbnail generation skipped: %s", str(e))
+            thumbnail_url = None
 
-        public_url = f"/uploads/{safe_name}"
-        return safe_name, public_url, file_size
+        image_url = f"/uploads/{subfolder}/{main_filename}"
+        return image_url, thumbnail_url
 
-    def delete_image(self, filename_or_url: str) -> bool:
+    @staticmethod
+    def delete_file(file_url: Optional[str]) -> bool:
         """
-        Safely deletes a stored image by filename or URL.
+        Deletes a previously uploaded file safely given its URL path.
+        Guards against directory traversal.
         """
-        filename = os.path.basename(filename_or_url)
-        if ".." in filename or "/" in filename or "\\" in filename:
+        if not file_url or not file_url.startswith("/uploads/"):
             return False
 
-        target = self.base_dir / filename
-        if target.exists() and target.is_file():
-            try:
-                target.unlink()
-                logger.info("Deleted image file: %s", filename)
-                return True
-            except Exception as e:
-                logger.error("Error deleting image file: %s", str(e))
+        try:
+            rel_path = file_url.replace("/uploads/", "").lstrip("/")
+            upload_root = get_upload_dir()
+            target_path = (upload_root / rel_path).resolve()
+
+            # Guard against path traversal
+            if not str(target_path).startswith(str(upload_root)):
+                logger.warning("Attempted path traversal deletion: %s", file_url)
                 return False
+
+            if target_path.exists() and target_path.is_file():
+                target_path.unlink()
+                return True
+        except Exception as e:
+            logger.error("Failed to delete stored file [%s]: %s", file_url, str(e))
+
         return False
-
-
-storage_service = StorageService()
