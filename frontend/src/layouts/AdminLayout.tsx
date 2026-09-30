@@ -32,9 +32,16 @@ export const AdminLayout: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo & Title */}
             <Link to="/admin" className="flex items-center space-x-3">
-              <span className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center font-black text-sm">
-                MYC
-              </span>
+              <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-xs border border-stone-700 shrink-0">
+                <img
+                  src="/images/official_club_logo.png"
+                  alt="Mahaveer Youth Club"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                  }}
+                  className="w-full h-full object-contain p-0.5"
+                />
+              </div>
               <div className="flex flex-col">
                 <span className="font-bold text-sm sm:text-base leading-tight">
                   Mahaveer Youth Club Banza

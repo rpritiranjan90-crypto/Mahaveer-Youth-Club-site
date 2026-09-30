@@ -119,12 +119,18 @@ export const HomePage: React.FC = () => {
                       Mandap Darshan
                     </span>
                   </div>
-                  <div className="aspect-3/4 sm:aspect-4/5 max-h-[460px] overflow-hidden bg-stone-900 flex items-center justify-center">
+                  <div className="aspect-3/4 sm:aspect-4/5 max-h-[500px] overflow-hidden bg-stone-900 flex items-center justify-center">
                     <img
-                      src={`${currentGanesh.image_url}${currentGanesh.updated_at ? `?v=${new Date(currentGanesh.updated_at).getTime()}` : ''}`}
+                      src={currentGanesh.image_url || '/images/current_ganesh_2026.jpg'}
                       alt={t('brand.ganeshAlt', { year: currentGanesh.year || 2026 })}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (!target.src.endsWith('/images/current_ganesh_2026.jpg')) {
+                          target.src = '/images/current_ganesh_2026.jpg';
+                        }
+                      }}
                       className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
+                      loading="eager"
                     />
                   </div>
                 </Card>

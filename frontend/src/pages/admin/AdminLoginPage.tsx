@@ -78,9 +78,16 @@ export const AdminLoginPage: React.FC = () => {
         {/* Header Branding */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 mb-3">
-            <span className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-base shadow-sm">
-              MYC
-            </span>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-xs border border-stone-200 shrink-0">
+              <img
+                src="/images/official_club_logo.png"
+                alt="Mahaveer Youth Club"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+                className="w-full h-full object-contain p-0.5"
+              />
+            </div>
             <Badge variant="saffron">ADMIN PORTAL</Badge>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">

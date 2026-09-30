@@ -23,7 +23,6 @@ export const NAV_ITEMS: NavItemConfig[] = [
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [logoImageError, setLogoImageError] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const { logo } = useBrand();
 
@@ -48,21 +47,19 @@ export const Navbar: React.FC = () => {
             onClick={closeMenu}
             className="flex items-center space-x-3 group focus-visible:outline-hidden"
           >
-            {logo && !logoImageError ? (
+            <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-xs border border-orange-100 group-hover:scale-105 transition-transform">
               <img
-                src={`${logo.image_url}?v=${new Date(logo.updated_at || logo.created_at).getTime()}`}
+                src={logo?.image_url || '/images/official_club_logo.png'}
                 alt={t('brand.logoAlt')}
-                onError={() => setLogoImageError(true)}
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-lg shadow-2xs group-hover:scale-105 transition-transform"
+                onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  if (!target.src.endsWith('/images/official_club_logo.png')) {
+                    target.src = '/images/official_club_logo.png';
+                  }
+                }}
+                className="w-full h-full object-contain p-0.5"
               />
-            ) : (
-              <span
-                className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-orange-700 transition-colors"
-                aria-hidden="true"
-              >
-                MYC
-              </span>
-            )}
+            </div>
             <div className="flex flex-col text-left">
               <span className="font-bold text-base sm:text-lg text-stone-900 leading-tight">
                 {t('nav.brandName')}

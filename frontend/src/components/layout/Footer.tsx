@@ -7,7 +7,6 @@ import { useBrand } from '../../context/BrandContext';
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
   const { logo } = useBrand();
-  const [logoImageError, setLogoImageError] = React.useState(false);
 
   return (
     <footer className="bg-stone-900 text-stone-300 mt-auto border-t border-stone-800 text-left">
@@ -16,21 +15,19 @@ export const Footer: React.FC = () => {
           {/* 1. Organization Information */}
           <div className="space-y-3 md:col-span-2">
             <div className="flex items-center space-x-3">
-              {logo && !logoImageError ? (
+              <div className="w-11 h-11 shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-xs border border-stone-700">
                 <img
-                  src={`${logo.image_url}?v=${new Date(logo.updated_at || logo.created_at).getTime()}`}
+                  src={logo?.image_url || '/images/official_club_logo.png'}
                   alt={t('brand.logoAlt')}
-                  onError={() => setLogoImageError(true)}
-                  className="w-10 h-10 object-contain rounded-lg shadow-sm"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    if (!target.src.endsWith('/images/official_club_logo.png')) {
+                      target.src = '/images/official_club_logo.png';
+                    }
+                  }}
+                  className="w-full h-full object-contain p-0.5"
                 />
-              ) : (
-                <span
-                  className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-base shadow-sm"
-                  aria-hidden="true"
-                >
-                  MYC
-                </span>
-              )}
+              </div>
               <div>
                 <span className="text-white font-bold text-lg tracking-tight block">
                   {t('footer.aboutTitle')}
