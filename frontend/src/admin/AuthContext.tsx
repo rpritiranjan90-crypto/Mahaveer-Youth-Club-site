@@ -31,43 +31,100 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const TOKEN_KEY = 'myc_admin_access_token';
+const REFRESH_TOKEN_KEY = 'myc_admin_refresh_token';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => {
-    return sessionStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
   });
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const attemptTokenRefresh = useCallback(async (): Promise<string | null> => {
+    const storedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem(REFRESH_TOKEN_KEY) || undefined;
+    try {
+      const res = await apiService.refreshToken(storedRefresh);
+      if (res?.access_token) {
+        localStorage.setItem(TOKEN_KEY, res.access_token);
+        setToken(res.access_token);
+        if (res.refresh_token) {
+          localStorage.setItem(REFRESH_TOKEN_KEY, res.refresh_token);
+        }
+        if (res.user) {
+          setUser(res.user);
+        }
+        return res.access_token;
+      }
+    } catch {
+      // Refresh failed
+    }
+    return null;
+  }, []);
+
   const refreshUser = useCallback(async () => {
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
+    let currentToken = token;
+    if (!currentToken) {
+      // Try refresh token if access token not present
+      currentToken = await attemptTokenRefresh();
+      if (!currentToken) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
     }
 
     try {
-      const profile = await apiService.getMe(token);
+      const profile = await apiService.getMe(currentToken);
       setUser(profile);
     } catch {
-      // Token is invalid/expired
-      sessionStorage.removeItem(TOKEN_KEY);
-      setToken(null);
-      setUser(null);
+      // Access token expired, attempt refresh
+      const refreshedToken = await attemptTokenRefresh();
+      if (refreshedToken) {
+        try {
+          const profile = await apiService.getMe(refreshedToken);
+          setUser(profile);
+        } catch {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(REFRESH_TOKEN_KEY);
+          sessionStorage.removeItem(TOKEN_KEY);
+          sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+          setToken(null);
+          setUser(null);
+        }
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        sessionStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+        setToken(null);
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, attemptTokenRefresh]);
 
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
 
+  // Periodic background token refresh every 10 minutes to prevent expiry during active work
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => {
+      attemptTokenRefresh();
+    }, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [token, attemptTokenRefresh]);
+
   const login = async (email: string, password: string): Promise<LoginResult> => {
     const res = await apiService.login(email, password);
     if (!res.requires_2fa && res.access_token) {
-      sessionStorage.setItem(TOKEN_KEY, res.access_token);
+      localStorage.setItem(TOKEN_KEY, res.access_token);
       setToken(res.access_token);
+      if (res.refresh_token) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, res.refresh_token);
+      }
       if (res.user) {
         setUser(res.user);
       }
@@ -78,8 +135,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verify2FA = async (challengeToken: string, code: string): Promise<LoginResult> => {
     const res = await apiService.verify2FA(challengeToken, code);
     if (res.access_token) {
-      sessionStorage.setItem(TOKEN_KEY, res.access_token);
+      localStorage.setItem(TOKEN_KEY, res.access_token);
       setToken(res.access_token);
+      if (res.refresh_token) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, res.refresh_token);
+      }
       if (res.user) {
         setUser(res.user);
       }
@@ -95,7 +155,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Ignore errors on logout
       }
     }
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
     setToken(null);
     setUser(null);
   };

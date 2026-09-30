@@ -122,26 +122,51 @@ export interface GalleryItemUpdatePayload {
 }
 
 // =============================================================================
-// Members (Nicknames only - privacy strictly preserved)
+// Members (Phase 10 Member Roster & Photo Management)
 // =============================================================================
 export interface MemberItem {
   id: number;
-  display_name: string;
-  role?: string | null;
-  sort_order: number;
-  is_visible?: boolean;
+  name: string;
+  designation: string;
+  bio?: string | null;
+  display_order: number;
+  is_active?: boolean;
+  photo_url?: string | null;
+  photo_storage_path?: string | null;
+  photo_original_filename?: string | null;
+  photo_mime_type?: string | null;
+  photo_file_size?: number | null;
+  photo_width?: number | null;
+  photo_height?: number | null;
   created_at?: string;
   updated_at?: string | null;
+  // Backward compatibility aliases
+  display_name?: string;
+  role?: string | null;
+  sort_order?: number;
+  is_visible?: boolean;
 }
 
 export interface MemberCreatePayload {
-  display_name: string;
+  name: string;
+  designation?: string;
+  bio?: string;
+  display_order?: number;
+  is_active?: boolean;
+  // Aliases
+  display_name?: string;
   role?: string;
   sort_order?: number;
   is_visible?: boolean;
 }
 
 export interface MemberUpdatePayload {
+  name?: string;
+  designation?: string;
+  bio?: string;
+  display_order?: number;
+  is_active?: boolean;
+  // Aliases
   display_name?: string;
   role?: string;
   sort_order?: number;
@@ -150,7 +175,8 @@ export interface MemberUpdatePayload {
 
 export interface MemberReorderItem {
   id: number;
-  sort_order: number;
+  display_order?: number;
+  sort_order?: number;
 }
 
 // =============================================================================

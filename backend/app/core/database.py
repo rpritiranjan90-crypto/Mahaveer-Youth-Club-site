@@ -5,16 +5,20 @@ from backend.app.core.config import settings
 from backend.app.core.logging import logger
 
 # Configure Engine
-# For SQLite (tests), require check_same_thread=False
-connect_args = {}
 if settings.DATABASE_URL.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
-
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args=connect_args,
-    pool_pre_ping=True,
-)
+    engine = create_engine(
+        settings.DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True,
+    )
+else:
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_timeout=settings.DB_POOL_TIMEOUT,
+        pool_pre_ping=True,
+    )
 
 # Session Factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

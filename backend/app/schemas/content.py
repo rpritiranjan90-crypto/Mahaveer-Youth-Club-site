@@ -185,47 +185,13 @@ class GalleryCategoriesResponse(BaseModel):
 
 
 # =============================================================================
-# Member Schemas (Strict Privacy: Public Nicknames Only!)
+# Member Schemas (Phase 10 Member Roster & Photo Management)
 # =============================================================================
-class MemberBase(BaseModel):
-    display_name: str = Field(..., min_length=1, max_length=100)
-    role: Optional[str] = Field(default="Club Youth Member", max_length=100)
-    sort_order: int = Field(default=0)
-    is_visible: bool = Field(default=True)
-
-
-class MemberCreate(MemberBase):
-    pass
-
-
-class MemberUpdate(BaseModel):
-    display_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    role: Optional[str] = Field(default=None, max_length=100)
-    sort_order: Optional[int] = None
-    is_visible: Optional[bool] = None
-
-
-class MemberReorderItem(BaseModel):
-    id: int
-    sort_order: int
-
-
-class MemberReorderRequest(BaseModel):
-    orders: List[MemberReorderItem]
-
-
-class MemberAdminResponse(MemberBase):
-    id: int
-    created_at: datetime
-    updated_at: Optional[datetime] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class MemberPublicResponse(BaseModel):
-    id: int
-    display_name: str
-    role: Optional[str] = None
-    sort_order: int
-
-    model_config = ConfigDict(from_attributes=True)
+from backend.app.schemas.member import (
+    MemberCreate,
+    MemberUpdate,
+    MemberReorderItem,
+    MemberReorderRequest,
+    MemberAdminResponse,
+    MemberPublicResponse,
+)

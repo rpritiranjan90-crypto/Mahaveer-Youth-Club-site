@@ -33,13 +33,7 @@ target_metadata = Base.metadata
 
 # Resolve database URL from -x args, settings, or alembic config
 x_args = context.get_x_argument(as_dictionary=True)
-db_url = x_args.get("db_url")
-if not db_url:
-    ini_url = config.get_main_option("sqlalchemy.url")
-    if ini_url and not ini_url.startswith("driver://"):
-        db_url = ini_url
-    else:
-        db_url = settings.DATABASE_URL
+db_url = x_args.get("db_url") or settings.DATABASE_URL or config.get_main_option("sqlalchemy.url")
 
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
@@ -58,11 +52,13 @@ def run_migrations_offline() -> None:
 
     """
     url = config.get_main_option("sqlalchemy.url")
+    is_sqlite = bool(url and url.startswith("sqlite"))
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        render_as_batch=is_sqlite,
     )
 
     with context.begin_transaction():
@@ -76,6 +72,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    url = config.get_main_option("sqlalchemy.url")
+    is_sqlite = bool(url and url.startswith("sqlite"))
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -84,7 +83,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=is_sqlite,
         )
 
         with context.begin_transaction():

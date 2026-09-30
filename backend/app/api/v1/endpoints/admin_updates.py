@@ -1,6 +1,6 @@
 import math
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
@@ -18,8 +18,10 @@ from backend.app.schemas.content import (
 from backend.app.services.audit import record_audit_event
 from backend.app.services.slug import generate_unique_slug
 from backend.app.services.sanitizer import sanitize_html
+from backend.app.services.storage import StorageService, safe_delete_media_file
 
 router = APIRouter()
+
 
 
 @router.get(
@@ -192,7 +194,11 @@ def update_update(
         item.content = sanitize_html(payload.content)
 
     if payload.featured_image is not None:
-        item.featured_image = payload.featured_image.strip() if payload.featured_image else None
+        old_image = item.featured_image
+        new_image = payload.featured_image.strip() if payload.featured_image else None
+        item.featured_image = new_image
+        if old_image and old_image != new_image:
+            safe_delete_media_file(db, old_image, current_table="updates", current_id=item.id)
 
     if payload.status is not None and payload.status != item.status:
         old_status = item.status
@@ -221,6 +227,107 @@ def update_update(
     )
 
     return UpdateAdminResponse.model_validate(item)
+
+
+@router.post(
+    "/{update_id}/image",
+    response_model=UpdateAdminResponse,
+    summary="Upload/Replace Featured Image (Admin)",
+)
+async def upload_update_featured_image(
+    update_id: int,
+    file: UploadFile = File(...),
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+) -> UpdateAdminResponse:
+    """
+    Uploads or replaces a circular/bulletin featured image.
+    Validates format (JPEG/PNG/WebP), magic bytes, size (<=5MB), Pillow integrity.
+    Saves new image before safely cleaning up old image if unreferenced elsewhere.
+    """
+    client_ip = get_client_ip(request)
+    update = db.query(Update).filter(Update.id == update_id).first()
+    if not update:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Update not found.")
+
+    file_bytes = await file.read()
+    storage_path, detected_mime, file_size, width, height = StorageService.save_update_image(
+        file_bytes=file_bytes,
+        content_type=file.content_type,
+    )
+
+    old_image_path = update.featured_image
+    action_type = "UPDATE_IMAGE_REPLACED" if old_image_path else "UPDATE_IMAGE_UPLOADED"
+
+    update.featured_image = storage_path
+    db.commit()
+    db.refresh(update)
+
+    # Safely remove old image only if not referenced elsewhere
+    if old_image_path and old_image_path != storage_path:
+        safe_delete_media_file(db, old_image_path, current_table="updates", current_id=update.id)
+
+    record_audit_event(
+        db=db,
+        action=action_type,
+        user_id=current_admin.id,
+        user_email=current_admin.email,
+        ip_address=client_ip,
+        entity_type="update",
+        entity_id=str(update.id),
+        details={
+            "storage_path": storage_path,
+            "original_filename": file.filename,
+            "mime_type": detected_mime,
+            "file_size": file_size,
+        },
+    )
+
+    return UpdateAdminResponse.model_validate(update)
+
+
+@router.delete(
+    "/{update_id}/image",
+    response_model=UpdateAdminResponse,
+    summary="Remove Featured Image (Admin)",
+)
+def delete_update_featured_image(
+    update_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+) -> UpdateAdminResponse:
+    """
+    Removes a circular featured image and safely deletes the underlying file if unreferenced.
+    """
+    client_ip = get_client_ip(request)
+    update = db.query(Update).filter(Update.id == update_id).first()
+    if not update:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Update not found.")
+
+    old_image = update.featured_image
+    if not old_image:
+        return UpdateAdminResponse.model_validate(update)
+
+    update.featured_image = None
+    db.commit()
+    db.refresh(update)
+
+    safe_delete_media_file(db, old_image, current_table="updates", current_id=update.id)
+
+    record_audit_event(
+        db=db,
+        action="UPDATE_IMAGE_REMOVED",
+        user_id=current_admin.id,
+        user_email=current_admin.email,
+        ip_address=client_ip,
+        entity_type="update",
+        entity_id=str(update.id),
+        details={"removed_image": old_image},
+    )
+
+    return UpdateAdminResponse.model_validate(update)
 
 
 @router.post(
@@ -288,7 +395,7 @@ def delete_update(
     current_admin: User = Depends(get_current_admin),
 ) -> dict:
     """
-    Permanently removes an update with audit logging.
+    Permanently removes an update with safe image cleanup and audit logging.
     """
     client_ip = get_client_ip(request)
     item = db.query(Update).filter(Update.id == update_id).first()
@@ -296,8 +403,13 @@ def delete_update(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Update not found.")
 
     title = item.title
+    image_to_delete = item.featured_image
+
     db.delete(item)
     db.commit()
+
+    if image_to_delete:
+        safe_delete_media_file(db, image_to_delete, current_table="updates", current_id=update_id)
 
     record_audit_event(
         db=db,
@@ -311,3 +423,4 @@ def delete_update(
     )
 
     return {"status": "ok", "message": f"Update #{update_id} successfully deleted."}
+

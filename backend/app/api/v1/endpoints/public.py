@@ -246,7 +246,7 @@ def get_gallery_categories(db: Session = Depends(get_db)) -> GalleryCategoriesRe
 @router.get(
     "/members",
     response_model=PaginatedResponse[MemberPublicResponse],
-    summary="List Public Member Nicknames",
+    summary="List Public Members",
 )
 def get_public_members(
     page: int = Query(1, ge=1, description="Page number"),
@@ -254,17 +254,17 @@ def get_public_members(
     db: Session = Depends(get_db),
 ) -> PaginatedResponse[MemberPublicResponse]:
     """
-    Returns visible members sorted by sort_order.
-    PRIVACY ENFORCED: Exposes ONLY display_name (public nickname), role, and sort_order.
-    Zero private contact details, emails, phones, or photos.
+    Returns active members sorted by display_order.
+    PRIVACY ENFORCED: Exposes ONLY safe public profile fields (name, designation, optional bio, display_order, photo_url).
+    Zero private contact details, emails, phones, addresses, internal storage paths, or audit records.
     """
-    query = db.query(Member).filter(Member.is_visible == True)
+    query = db.query(Member).filter(Member.is_active == True)
 
     total = query.count()
     total_pages = math.ceil(total / page_size) if total > 0 else 1
 
     items = (
-        query.order_by(Member.sort_order.asc(), Member.id.asc())
+        query.order_by(Member.display_order.asc(), Member.id.asc())
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

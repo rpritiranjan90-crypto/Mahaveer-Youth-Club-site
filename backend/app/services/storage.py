@@ -189,6 +189,51 @@ class StorageService:
         return storage_path, detected_mime, len(file_bytes), width, height
 
     @staticmethod
+    def save_member_photo(
+        file_bytes: bytes,
+        content_type: Optional[str] = None,
+    ) -> Tuple[str, str, int, Optional[int], Optional[int]]:
+        """
+        Validates and saves a member profile photograph securely.
+        Returns (storage_path, detected_mime, file_size, width, height).
+        """
+        return StorageService.save_site_asset(
+            file_bytes=file_bytes,
+            content_type=content_type,
+            subfolder="members",
+        )
+
+    @staticmethod
+    def save_activity_image(
+        file_bytes: bytes,
+        content_type: Optional[str] = None,
+    ) -> Tuple[str, str, int, Optional[int], Optional[int]]:
+        """
+        Validates and saves an activity program image securely.
+        Returns (storage_path, detected_mime, file_size, width, height).
+        """
+        return StorageService.save_site_asset(
+            file_bytes=file_bytes,
+            content_type=content_type,
+            subfolder="activities",
+        )
+
+    @staticmethod
+    def save_update_image(
+        file_bytes: bytes,
+        content_type: Optional[str] = None,
+    ) -> Tuple[str, str, int, Optional[int], Optional[int]]:
+        """
+        Validates and saves a circular / bulletin featured image securely.
+        Returns (storage_path, detected_mime, file_size, width, height).
+        """
+        return StorageService.save_site_asset(
+            file_bytes=file_bytes,
+            content_type=content_type,
+            subfolder="updates",
+        )
+
+    @staticmethod
     def delete_file(file_url: Optional[str]) -> bool:
         """
         Deletes a previously uploaded file safely given its URL path.
@@ -214,3 +259,82 @@ class StorageService:
             logger.error("Failed to delete stored file [%s]: %s", file_url, str(e))
 
         return False
+
+
+def is_image_referenced_elsewhere(
+    db,
+    file_url: Optional[str],
+    current_table: Optional[str] = None,
+    current_id: Optional[int] = None,
+) -> bool:
+    """
+    Checks if a media file URL is referenced in other database records
+    to prevent accidental deletion of shared gallery photos, assets, or roster photos.
+    """
+    if not file_url or not file_url.startswith("/uploads/"):
+        return False
+
+    from backend.app.models.gallery import GalleryItem
+    from backend.app.models.site_asset import SiteAsset
+    from backend.app.models.member import Member
+    from backend.app.models.activity import Activity
+    from backend.app.models.update import Update
+
+    # 1. Gallery Items (original or thumbnail)
+    gal_q = db.query(GalleryItem).filter(
+        (GalleryItem.image_url == file_url) | (GalleryItem.thumbnail_url == file_url)
+    )
+    if current_table == "gallery_items" and current_id:
+        gal_q = gal_q.filter(GalleryItem.id != current_id)
+    if gal_q.first():
+        return True
+
+    # 2. Site Assets (Logo / Ganesh)
+    asset_q = db.query(SiteAsset).filter(SiteAsset.storage_path == file_url)
+    if current_table == "site_assets" and current_id:
+        asset_q = asset_q.filter(SiteAsset.id != current_id)
+    if asset_q.first():
+        return True
+
+    # 3. Members
+    member_q = db.query(Member).filter(Member.photo_storage_path == file_url)
+    if current_table == "members" and current_id:
+        member_q = member_q.filter(Member.id != current_id)
+    if member_q.first():
+        return True
+
+    # 4. Activities
+    act_q = db.query(Activity).filter(Activity.image == file_url)
+    if current_table == "activities" and current_id:
+        act_q = act_q.filter(Activity.id != current_id)
+    if act_q.first():
+        return True
+
+    # 5. Updates
+    upd_q = db.query(Update).filter(Update.featured_image == file_url)
+    if current_table == "updates" and current_id:
+        upd_q = upd_q.filter(Update.id != current_id)
+    if upd_q.first():
+        return True
+
+    return False
+
+
+def safe_delete_media_file(
+    db,
+    file_url: Optional[str],
+    current_table: Optional[str] = None,
+    current_id: Optional[int] = None,
+) -> bool:
+    """
+    Deletes a media file from disk ONLY if it is not referenced elsewhere in the database.
+    """
+    if not file_url or not file_url.startswith("/uploads/"):
+        return False
+
+    if is_image_referenced_elsewhere(db, file_url, current_table=current_table, current_id=current_id):
+        logger.info("Preserving shared media file [%s] as it is still referenced elsewhere.", file_url)
+        return False
+
+    return StorageService.delete_file(file_url)
+

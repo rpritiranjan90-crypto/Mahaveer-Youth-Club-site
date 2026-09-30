@@ -36,7 +36,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   };
 
   try {
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, {
+      credentials: 'include',
+      ...options,
+      headers,
+    });
 
     if (!response.ok) {
       let errorData: any = null;
@@ -99,6 +103,13 @@ export const apiService = {
     return request<any>('/auth/2fa/verify', {
       method: 'POST',
       body: JSON.stringify({ challenge_token, code }),
+    });
+  },
+
+  refreshToken: async (refreshToken?: string) => {
+    return request<any>('/auth/refresh', {
+      method: 'POST',
+      headers: refreshToken ? { Authorization: `Bearer ${refreshToken}` } : {},
     });
   },
 
@@ -325,6 +336,23 @@ export const apiService = {
     });
   },
 
+  uploadUpdateImage: async (token: string, id: number, file: File): Promise<UpdateItem> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<UpdateItem>(`/admin/updates/${id}/image`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
+
+  deleteUpdateImage: async (token: string, id: number): Promise<UpdateItem> => {
+    return request<UpdateItem>(`/admin/updates/${id}/image`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
   // B. Activities
   getAdminActivities: async (
     token: string,
@@ -403,6 +431,23 @@ export const apiService = {
     });
   },
 
+  uploadActivityImage: async (token: string, id: number, file: File): Promise<ActivityItem> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<ActivityItem>(`/admin/activities/${id}/image`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
+
+  deleteActivityImage: async (token: string, id: number): Promise<ActivityItem> => {
+    return request<ActivityItem>(`/admin/activities/${id}/image`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
   // C. Gallery
   getAdminGallery: async (
     token: string,
@@ -475,19 +520,28 @@ export const apiService = {
     });
   },
 
-  // D. Members
+  // D. Members (Phase 10 Member Roster & Photo Management)
   getAdminMembers: async (
     token: string,
     page: number = 1,
     pageSize: number = 100,
-    isVisible?: boolean
+    isActive?: boolean,
+    search?: string
   ): Promise<PaginatedResponse<MemberItem>> => {
     const params = new URLSearchParams({
       page: page.toString(),
       page_size: pageSize.toString(),
     });
-    if (isVisible !== undefined) params.append('is_visible', isVisible.toString());
+    if (isActive !== undefined) params.append('is_active', isActive.toString());
+    if (search) params.append('search', search);
     return request<PaginatedResponse<MemberItem>>(`/admin/members?${params.toString()}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  getAdminMember: async (token: string, id: number): Promise<MemberItem> => {
+    return request<MemberItem>(`/admin/members/${id}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -513,6 +567,41 @@ export const apiService = {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
+    });
+  },
+
+  uploadMemberPhoto: async (
+    token: string,
+    id: number,
+    file: File
+  ): Promise<MemberItem> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<MemberItem>(`/admin/members/${id}/photo`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
+
+  deleteMemberPhoto: async (token: string, id: number): Promise<MemberItem> => {
+    return request<MemberItem>(`/admin/members/${id}/photo`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  activateMember: async (token: string, id: number): Promise<MemberItem> => {
+    return request<MemberItem>(`/admin/members/${id}/activate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  deactivateMember: async (token: string, id: number): Promise<MemberItem> => {
+    return request<MemberItem>(`/admin/members/${id}/deactivate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
     });
   },
 

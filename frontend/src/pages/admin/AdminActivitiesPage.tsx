@@ -5,6 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { MediaPicker } from '../../components/media/MediaPicker';
 import { usePageMeta } from '../../hooks/usePageMeta';
 import { apiService } from '../../services/api';
 import { ActivityItem, ContentStatus } from '../../types';
@@ -335,8 +336,21 @@ export const AdminActivitiesPage: React.FC = () => {
                 {activities.map((item) => (
                   <tr key={item.id} className="hover:bg-stone-50/70 transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-bold text-stone-900">{item.title}</div>
-                      <div className="text-[11px] text-stone-400 font-mono">/activities/{item.slug}</div>
+                      <div className="flex items-center gap-3">
+                        {item.image ? (
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 border border-stone-200 shrink-0">
+                            <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 text-xs shrink-0">
+                            🎭
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="font-bold text-stone-900 truncate">{item.title}</div>
+                          <div className="text-[11px] text-stone-400 font-mono truncate">/activities/{item.slug}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-stone-600 font-medium">{item.date}</td>
                     <td className="py-3.5 px-4">
@@ -533,15 +547,11 @@ export const AdminActivitiesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Program Image URL (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://... or /uploads/gallery/..."
+                <MediaPicker
+                  label="Program Image"
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                  onChange={(url) => setFormData({ ...formData, image: url })}
+                  helperText="Select a photo from the gallery or upload a new image."
                 />
               </div>
 

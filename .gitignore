@@ -47,4 +47,6 @@ uploads/
 *.db
 *.sqlite
 *.sqlite3
+backups/
+backup_*/
 

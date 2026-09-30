@@ -1,6 +1,6 @@
 import math
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
@@ -17,8 +17,10 @@ from backend.app.schemas.content import (
 )
 from backend.app.services.audit import record_audit_event
 from backend.app.services.slug import generate_unique_slug
+from backend.app.services.storage import StorageService, safe_delete_media_file
 
 router = APIRouter()
+
 
 
 @router.get(
@@ -189,7 +191,11 @@ def update_activity(
         item.category = payload.category.strip()
 
     if payload.image is not None:
-        item.image = payload.image.strip() if payload.image else None
+        old_image = item.image
+        new_image = payload.image.strip() if payload.image else None
+        item.image = new_image
+        if old_image and old_image != new_image:
+            safe_delete_media_file(db, old_image, current_table="activities", current_id=item.id)
 
     if payload.status is not None and payload.status != item.status:
         item.status = payload.status
@@ -217,6 +223,107 @@ def update_activity(
     )
 
     return ActivityAdminResponse.model_validate(item)
+
+
+@router.post(
+    "/{activity_id}/image",
+    response_model=ActivityAdminResponse,
+    summary="Upload/Replace Activity Image (Admin)",
+)
+async def upload_activity_image(
+    activity_id: int,
+    file: UploadFile = File(...),
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+) -> ActivityAdminResponse:
+    """
+    Uploads or replaces an activity program image.
+    Validates format (JPEG/PNG/WebP), magic bytes, size (<=5MB), Pillow integrity.
+    Saves new image before safely cleaning up old image if unreferenced elsewhere.
+    """
+    client_ip = get_client_ip(request)
+    activity = db.query(Activity).filter(Activity.id == activity_id).first()
+    if not activity:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found.")
+
+    file_bytes = await file.read()
+    storage_path, detected_mime, file_size, width, height = StorageService.save_activity_image(
+        file_bytes=file_bytes,
+        content_type=file.content_type,
+    )
+
+    old_image_path = activity.image
+    action_type = "ACTIVITY_IMAGE_REPLACED" if old_image_path else "ACTIVITY_IMAGE_UPLOADED"
+
+    activity.image = storage_path
+    db.commit()
+    db.refresh(activity)
+
+    # Safely remove old image only if not referenced elsewhere
+    if old_image_path and old_image_path != storage_path:
+        safe_delete_media_file(db, old_image_path, current_table="activities", current_id=activity.id)
+
+    record_audit_event(
+        db=db,
+        action=action_type,
+        user_id=current_admin.id,
+        user_email=current_admin.email,
+        ip_address=client_ip,
+        entity_type="activity",
+        entity_id=str(activity.id),
+        details={
+            "storage_path": storage_path,
+            "original_filename": file.filename,
+            "mime_type": detected_mime,
+            "file_size": file_size,
+        },
+    )
+
+    return ActivityAdminResponse.model_validate(activity)
+
+
+@router.delete(
+    "/{activity_id}/image",
+    response_model=ActivityAdminResponse,
+    summary="Remove Activity Image (Admin)",
+)
+def delete_activity_image(
+    activity_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+) -> ActivityAdminResponse:
+    """
+    Removes an activity program image and safely deletes the underlying file if unreferenced.
+    """
+    client_ip = get_client_ip(request)
+    activity = db.query(Activity).filter(Activity.id == activity_id).first()
+    if not activity:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found.")
+
+    old_image = activity.image
+    if not old_image:
+        return ActivityAdminResponse.model_validate(activity)
+
+    activity.image = None
+    db.commit()
+    db.refresh(activity)
+
+    safe_delete_media_file(db, old_image, current_table="activities", current_id=activity.id)
+
+    record_audit_event(
+        db=db,
+        action="ACTIVITY_IMAGE_REMOVED",
+        user_id=current_admin.id,
+        user_email=current_admin.email,
+        ip_address=client_ip,
+        entity_type="activity",
+        entity_id=str(activity.id),
+        details={"removed_image": old_image},
+    )
+
+    return ActivityAdminResponse.model_validate(activity)
 
 
 @router.post(
@@ -284,7 +391,7 @@ def delete_activity(
     current_admin: User = Depends(get_current_admin),
 ) -> dict:
     """
-    Permanently deletes an activity with audit logging.
+    Permanently deletes an activity with safe image cleanup and audit logging.
     """
     client_ip = get_client_ip(request)
     item = db.query(Activity).filter(Activity.id == activity_id).first()
@@ -292,8 +399,13 @@ def delete_activity(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found.")
 
     title = item.title
+    image_to_delete = item.image
+
     db.delete(item)
     db.commit()
+
+    if image_to_delete:
+        safe_delete_media_file(db, image_to_delete, current_table="activities", current_id=activity_id)
 
     record_audit_event(
         db=db,
@@ -307,3 +419,4 @@ def delete_activity(
     )
 
     return {"status": "ok", "message": f"Activity #{activity_id} successfully deleted."}
+

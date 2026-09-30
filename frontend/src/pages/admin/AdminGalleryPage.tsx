@@ -21,6 +21,7 @@ export const AdminGalleryPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -34,6 +35,7 @@ export const AdminGalleryPage: React.FC = () => {
   // Modals & Action States
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
   const [editingPhoto, setEditingPhoto] = useState<GalleryPhoto | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<GalleryPhoto | null>(null);
   const [deletingPhoto, setDeletingPhoto] = useState<GalleryPhoto | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
@@ -113,6 +115,12 @@ export const AdminGalleryPage: React.FC = () => {
     setError(null);
     setUploadFile(file);
     setFilePreview(URL.createObjectURL(file));
+
+    // Auto-populate title if blank
+    if (!uploadData.title) {
+      const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      setUploadData((prev) => ({ ...prev, title: cleanName }));
+    }
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
@@ -221,6 +229,16 @@ export const AdminGalleryPage: React.FC = () => {
     }
   };
 
+  const handleCopyUrl = (photo: GalleryPhoto) => {
+    const url = photo.image_url || photo.thumbnail_url || photo.url || '';
+    if (!url) return;
+    const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      setCopiedUrl(String(photo.id));
+      setTimeout(() => setCopiedUrl(null), 2500);
+    });
+  };
+
   const renderStatusBadge = (status?: ContentStatus) => {
     switch (status) {
       case 'published':
@@ -308,7 +326,7 @@ export const AdminGalleryPage: React.FC = () => {
               setYearFilter(e.target.value);
               setPage(1);
             }}
-            className="px-2.5 py-1 text-xs rounded-lg border border-stone-300 bg-white"
+            className="px-2.5 py-1 text-xs rounded-lg border border-stone-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-orange-500"
           >
             <option value="all">All Years</option>
             {availableYears.map((y) => (
@@ -324,7 +342,7 @@ export const AdminGalleryPage: React.FC = () => {
               setCategoryFilter(e.target.value);
               setPage(1);
             }}
-            className="px-2.5 py-1 text-xs rounded-lg border border-stone-300 bg-white"
+            className="px-2.5 py-1 text-xs rounded-lg border border-stone-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-orange-500"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -350,84 +368,108 @@ export const AdminGalleryPage: React.FC = () => {
         />
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {photos.map((photo) => {
               const displayImg = photo.thumbnail_url || photo.image_url || photo.url || '';
               return (
                 <div
                   key={photo.id}
-                  className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                  className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
                 >
                   <div>
-                    <div className="aspect-4/3 bg-stone-100 relative overflow-hidden">
+                    <div className="aspect-4/3 bg-stone-100 relative overflow-hidden cursor-pointer" onClick={() => setPreviewPhoto(photo)}>
                       <img
                         src={displayImg}
                         alt={photo.alt_text || photo.title}
                         loading="lazy"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103"
                       />
                       <div className="absolute top-2 right-2">
                         {renderStatusBadge(photo.status)}
                       </div>
-                      <div className="absolute bottom-2 left-2">
-                        <span className="bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+                        <span className="bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
                           {photo.year}
+                        </span>
+                      </div>
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="bg-white/90 text-stone-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+                          🔍 View Preview
                         </span>
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-1.5">
-                      <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                        {photo.category}
-                      </span>
-                      <h3 className="text-sm font-bold text-stone-900 line-clamp-1">{photo.title}</h3>
+                    <div className="p-3.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          {photo.category}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyUrl(photo)}
+                          className="text-[11px] text-stone-500 hover:text-stone-800 font-mono transition-colors flex items-center gap-1"
+                          title="Copy public image URL"
+                        >
+                          {copiedUrl === String(photo.id) ? (
+                            <span className="text-emerald-600 font-bold">✓ Copied</span>
+                          ) : (
+                            <span>🔗 Copy Link</span>
+                          )}
+                        </button>
+                      </div>
+                      <h3 className="text-xs sm:text-sm font-bold text-stone-900 line-clamp-1 mt-1" title={photo.title}>
+                        {photo.title}
+                      </h3>
                       {photo.alt_text && (
-                        <p className="text-[11px] text-stone-500 line-clamp-2 italic">
+                        <p className="text-[11px] text-stone-500 line-clamp-1 italic">
                           Alt: "{photo.alt_text}"
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="p-3 border-t border-stone-100 bg-stone-50 flex items-center justify-between gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditModal(photo)}
-                      className="text-xs px-2 py-1"
-                    >
-                      ✏️ Edit
-                    </Button>
-
-                    {photo.status !== 'published' && (
+                  <div className="p-2.5 border-t border-stone-100 bg-stone-50 flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-1">
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
-                        disabled={actionLoading}
-                        onClick={() => handleStatusChange(photo, 'published')}
-                        className="text-xs px-2 py-1 text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                        onClick={() => openEditModal(photo)}
+                        className="text-xs px-2 py-1 h-7"
                       >
-                        🚀 Publish
+                        ✏️ Edit
                       </Button>
-                    )}
 
-                    {photo.status === 'published' && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={actionLoading}
-                        onClick={() => handleStatusChange(photo, 'archived')}
-                        className="text-xs px-2 py-1 text-stone-700 bg-stone-200 hover:bg-stone-300"
-                      >
-                        📦 Archive
-                      </Button>
-                    )}
+                      {photo.status !== 'published' && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={actionLoading}
+                          onClick={() => handleStatusChange(photo, 'published')}
+                          className="text-xs px-2 py-1 h-7 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-semibold"
+                        >
+                          🚀 Publish
+                        </Button>
+                      )}
+
+                      {photo.status === 'published' && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={actionLoading}
+                          onClick={() => handleStatusChange(photo, 'archived')}
+                          className="text-xs px-2 py-1 h-7 text-stone-700 bg-stone-200 hover:bg-stone-300"
+                        >
+                          📦 Archive
+                        </Button>
+                      )}
+                    </div>
 
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeletingPhoto(photo)}
-                      className="text-xs text-rose-600 hover:bg-rose-50 px-2 py-1"
+                      className="text-xs text-rose-600 hover:bg-rose-50 px-2 py-1 h-7"
+                      title="Delete photo"
                     >
                       🗑️
                     </Button>
@@ -438,7 +480,7 @@ export const AdminGalleryPage: React.FC = () => {
           </div>
 
           {totalPages > 1 && (
-            <div className="p-4 border-t border-stone-200 flex items-center justify-between bg-white rounded-xl text-xs">
+            <div className="p-4 border border-stone-200 flex items-center justify-between bg-white rounded-xl text-xs">
               <span className="text-stone-500">
                 Page {page} of {totalPages} ({totalCount} photos)
               </span>
@@ -465,16 +507,85 @@ export const AdminGalleryPage: React.FC = () => {
         </div>
       )}
 
+      {/* FULL PREVIEW MODAL */}
+      {previewPhoto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setPreviewPhoto(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-stone-900">{previewPhoto.title}</span>
+                {renderStatusBadge(previewPhoto.status)}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewPhoto(null)}
+                className="text-stone-400 hover:text-stone-600 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="bg-stone-900 max-h-[60vh] flex items-center justify-center p-2">
+              <img
+                src={previewPhoto.image_url || previewPhoto.url || ''}
+                alt={previewPhoto.alt_text || previewPhoto.title}
+                className="max-h-[55vh] max-w-full object-contain rounded-lg"
+              />
+            </div>
+
+            <div className="p-4 space-y-3 bg-white">
+              <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <Badge variant="saffron">{previewPhoto.year}</Badge>
+                  <span className="text-stone-600 font-medium">{previewPhoto.category}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyUrl(previewPhoto)}
+                  className="text-xs h-7"
+                >
+                  {copiedUrl === String(previewPhoto.id) ? '✓ URL Copied' : '🔗 Copy Image URL'}
+                </Button>
+              </div>
+
+              {previewPhoto.alt_text && (
+                <p className="text-xs text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-100">
+                  <strong>Alt Description:</strong> {previewPhoto.alt_text}
+                </p>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-stone-200 bg-stone-50 flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => setPreviewPhoto(null)}>
+                Close Preview
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* UPLOAD MODAL */}
       {isUploadOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
         >
-          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5">
             <div className="flex items-center justify-between border-b border-stone-200 pb-4">
-              <h2 className="text-xl font-bold text-stone-900">Upload Celebration Photo</h2>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-stone-900">Upload Celebration Photo</h2>
+                <p className="text-xs text-stone-500 mt-0.5">Secure upload with auto-thumbnail generation</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsUploadOpen(false)}
@@ -485,26 +596,47 @@ export const AdminGalleryPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleUploadSubmit} className="space-y-4">
-              {/* File Input */}
+              {/* Dropzone */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
                   Select Image File (JPEG, PNG, WebP — Max 5MB) *
                 </label>
-                <input
-                  type="file"
-                  required
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleFileChange}
-                  className="w-full text-xs text-stone-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
-                />
-              </div>
-
-              {/* Image Preview */}
-              {filePreview && (
-                <div className="aspect-16/9 rounded-lg overflow-hidden bg-stone-100 max-h-48 flex items-center justify-center border border-stone-200">
-                  <img src={filePreview} alt="Upload preview" className="w-full h-full object-contain" />
+                <div className="border-2 border-dashed border-stone-300 rounded-xl p-4 text-center bg-stone-50/50 hover:bg-stone-50 transition-colors">
+                  {filePreview ? (
+                    <div className="space-y-2">
+                      <div className="aspect-16/9 rounded-lg overflow-hidden bg-stone-100 max-h-44 mx-auto border border-stone-300 shadow-xs">
+                        <img src={filePreview} alt="Upload preview" className="w-full h-full object-contain" />
+                      </div>
+                      <label className="cursor-pointer inline-block text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-200">
+                        Choose Different File
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer block space-y-2 py-3">
+                      <div className="text-3xl text-stone-400">📤</div>
+                      <p className="text-xs font-bold text-stone-700">
+                        Click or drag to choose an image
+                      </p>
+                      <p className="text-[11px] text-stone-500">
+                        JPEG, PNG, or WebP (Maximum 5MB)
+                      </p>
+                      <input
+                        type="file"
+                        required
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
-              )}
+              </div>
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
@@ -516,7 +648,7 @@ export const AdminGalleryPage: React.FC = () => {
                   placeholder="e.g. Sri Ganesh Visarjan Shobhayatra"
                   value={uploadData.title}
                   onChange={(e) => setUploadData({ ...uploadData, title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                 />
               </div>
 
@@ -531,7 +663,7 @@ export const AdminGalleryPage: React.FC = () => {
                     placeholder="e.g. 2026, 2027"
                     value={uploadData.year}
                     onChange={(e) => setUploadData({ ...uploadData, year: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                   />
                 </div>
 
@@ -542,7 +674,7 @@ export const AdminGalleryPage: React.FC = () => {
                   <select
                     value={uploadData.category}
                     onChange={(e) => setUploadData({ ...uploadData, category: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>
@@ -559,7 +691,7 @@ export const AdminGalleryPage: React.FC = () => {
                   <select
                     value={uploadData.item_status}
                     onChange={(e) => setUploadData({ ...uploadData, item_status: e.target.value as ContentStatus })}
-                    className="w-full px-3.5 py-2 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                   >
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
@@ -577,7 +709,7 @@ export const AdminGalleryPage: React.FC = () => {
                   placeholder="Describe image contents for screen readers..."
                   value={uploadData.alt_text}
                   onChange={(e) => setUploadData({ ...uploadData, alt_text: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                 />
               </div>
 
@@ -585,7 +717,7 @@ export const AdminGalleryPage: React.FC = () => {
                 <Button type="button" variant="outline" size="sm" onClick={() => setIsUploadOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm" disabled={actionLoading} className="font-bold">
+                <Button type="submit" variant="primary" size="sm" disabled={actionLoading || !uploadFile} className="font-bold">
                   {actionLoading ? 'Uploading & Processing...' : 'Upload Photo'}
                 </Button>
               </div>
@@ -599,7 +731,7 @@ export const AdminGalleryPage: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
         >
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-200 space-y-4">
             <div className="flex items-center justify-between border-b border-stone-200 pb-3">
@@ -623,7 +755,7 @@ export const AdminGalleryPage: React.FC = () => {
                   required
                   value={editData.title}
                   onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                  className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                 />
               </div>
 
@@ -637,7 +769,7 @@ export const AdminGalleryPage: React.FC = () => {
                     required
                     value={editData.year}
                     onChange={(e) => setEditData({ ...editData, year: e.target.value })}
-                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                    className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                   />
                 </div>
 
@@ -648,7 +780,7 @@ export const AdminGalleryPage: React.FC = () => {
                   <select
                     value={editData.category}
                     onChange={(e) => setEditData({ ...editData, category: e.target.value })}
-                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                    className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>
@@ -665,7 +797,7 @@ export const AdminGalleryPage: React.FC = () => {
                   <select
                     value={editData.status}
                     onChange={(e) => setEditData({ ...editData, status: e.target.value as ContentStatus })}
-                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                    className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                   >
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
@@ -682,7 +814,7 @@ export const AdminGalleryPage: React.FC = () => {
                   type="text"
                   value={editData.alt_text}
                   onChange={(e) => setEditData({ ...editData, alt_text: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
+                  className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-orange-500 bg-white"
                 />
               </div>
 
@@ -704,7 +836,7 @@ export const AdminGalleryPage: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
         >
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 space-y-4">
             <div className="flex items-center space-x-3 text-rose-600">
@@ -712,7 +844,7 @@ export const AdminGalleryPage: React.FC = () => {
               <h3 className="text-lg font-bold text-stone-900">Confirm Photo Deletion</h3>
             </div>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              Are you sure you want to permanently delete <strong className="text-stone-900">"{deletingPhoto.title}"</strong>? This will remove the image file and its thumbnail from server storage.
+              Are you sure you want to permanently delete <strong className="text-stone-900">"{deletingPhoto.title}"</strong>? If this image is referenced in other sections, the system will safely retain the media file while removing it from the public gallery.
             </p>
             <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-3">
               <Button variant="outline" size="sm" onClick={() => setDeletingPhoto(null)} disabled={actionLoading}>
