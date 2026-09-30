@@ -11,7 +11,8 @@
 |---|---|
 | `frontend/src/hooks/useScrollReveal.ts` | **New File**: Zero-dependency IntersectionObserver hook with automatic `prefers-reduced-motion` detection for clean scroll reveals. |
 | `frontend/src/index.css` | Added `@keyframes heroEntrance` and `.hero-stagger-1` through `.hero-stagger-5`, scroll-reveal classes (`.reveal-on-scroll`, `.reveal-scale`), card interactive styles (`.card-interactive`), button hover micro-interactions (`.btn-interactive`), and mandatory `@media (prefers-reduced-motion: reduce)` overrides. |
-| `frontend/src/components/ui/Button.tsx` | Integrated `.btn-interactive` into `baseStyles` for subtle elevation on hover and tactile active feedback. |
+| `frontend/src/components/ui/Button.tsx` | Integrated `.btn-interactive` into `baseStyles` and added `white` and `white-outline` variants for high contrast on warm/dark backgrounds. |
+| `frontend/src/components/content/CTASection.tsx` | Updated CTA action buttons to use `white` and `white-outline` variants ensuring high-contrast, crystal clear text visibility. |
 | `frontend/src/components/ui/Card.tsx` | Added optional `interactive?: boolean` prop supporting subtle elevation and border warmth on hover. |
 | `frontend/src/components/gallery/GalleryGrid.tsx` | Refined image hover zoom to subtle `scale(1.03)` with smooth ease. |
 | `frontend/src/pages/HomePage.tsx` | Applied staggered hero sequence (1: Badges, 2: Title, 3: Tagline, 4: Subtitle, 5: CTA buttons), ambient warmth glow, scroll reveal hooks, 2012 anchor highlight, and interactive hub cards. |
