@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './admin/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { BrandProvider } from './context/BrandContext';
@@ -30,12 +30,29 @@ import { AdminAssetsPage } from './pages/admin/AdminAssetsPage';
 import { AdminSecurityPage } from './pages/admin/AdminSecurityPage';
 import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 
+const UrlNormalizer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    let cleanPath = location.pathname;
+    if (cleanPath.endsWith('.') || (cleanPath.length > 1 && cleanPath.endsWith('/'))) {
+      cleanPath = cleanPath.replace(/[./]+$/, '');
+      if (!cleanPath) cleanPath = '/';
+      navigate(`${cleanPath}${location.search}${location.hash}`, { replace: true });
+    }
+  }, [location, navigate]);
+
+  return <>{children}</>;
+};
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <LanguageProvider>
-        <BrandProvider>
-          <AuthProvider>
+      <UrlNormalizer>
+        <LanguageProvider>
+          <BrandProvider>
+            <AuthProvider>
             <Routes>
               {/* Public Application Shell Routes */}
               <Route element={<PublicLayout />}>
@@ -76,8 +93,9 @@ export const App: React.FC = () => {
           </AuthProvider>
         </BrandProvider>
       </LanguageProvider>
-    </BrowserRouter>
-  );
+    </UrlNormalizer>
+  </BrowserRouter>
+);
 };
 
 export default App;
