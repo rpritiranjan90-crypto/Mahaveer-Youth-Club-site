@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { GalleryPhoto } from '../../types';
+import { resolveMediaUrl } from '../../utils/media';
 
 export interface GalleryLightboxProps {
   photo: GalleryPhoto | null;
@@ -131,7 +132,7 @@ export const GalleryLightbox: React.FC<GalleryLightboxProps> = ({
       {/* Main image content container */}
       <div className="max-w-4xl max-h-[85vh] flex flex-col items-center justify-center">
         <img
-          src={displayUrl}
+          src={resolveMediaUrl(displayUrl)}
           alt={photo.alt_text || photo.title}
           className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-2xl"
         />

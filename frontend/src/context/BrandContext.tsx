@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { apiService } from '../services/api';
+import { resolveMediaUrl } from '../utils/media';
 import { SiteAsset } from '../types';
 
 export interface BrandContextType {
@@ -58,7 +59,12 @@ export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setLogoError(false);
     try {
       const data = await apiService.getPublicLogo();
-      setLogo(data);
+      if (data) {
+        setLogo({
+          ...data,
+          image_url: resolveMediaUrl(data.image_url || data.storage_path),
+        });
+      }
     } catch {
       // Keep DEFAULT_LOGO if backend has no custom uploaded logo yet
       setLogo(DEFAULT_LOGO);
@@ -73,7 +79,14 @@ export const BrandProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setGaneshError(false);
     try {
       const data = await apiService.getPublicCurrentGanesh();
-      setCurrentGanesh(data || DEFAULT_GANESH);
+      if (data) {
+        setCurrentGanesh({
+          ...data,
+          image_url: resolveMediaUrl(data.image_url || data.storage_path),
+        });
+      } else {
+        setCurrentGanesh(DEFAULT_GANESH);
+      }
     } catch {
       setCurrentGanesh(DEFAULT_GANESH);
       setGaneshError(false);

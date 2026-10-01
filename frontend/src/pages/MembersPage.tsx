@@ -10,6 +10,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
+import { resolveMediaUrl } from '../utils/media';
 import { MemberItem } from '../types';
 
 export const MembersPage: React.FC = () => {
@@ -114,7 +115,7 @@ export const MembersPage: React.FC = () => {
                             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-orange-100 shadow-xs flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 group-hover:scale-105 transition-transform duration-300">
                               {hasPhoto ? (
                                 <img
-                                  src={member.photo_url!}
+                                  src={resolveMediaUrl(member.photo_url)}
                                   alt={t('members.photoAlt', { name: memberName, designation: memberRole })}
                                   className="w-full h-full object-cover"
                                   loading="lazy"

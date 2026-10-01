@@ -10,6 +10,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
+import { resolveMediaUrl } from '../utils/media';
 import { ActivityItem } from '../types';
 
 export const ActivitiesPage: React.FC = () => {
@@ -129,7 +130,7 @@ export const ActivitiesPage: React.FC = () => {
                         {activity.image && (
                           <div className="aspect-16/9 bg-stone-100 overflow-hidden">
                             <img
-                              src={activity.image}
+                              src={resolveMediaUrl(activity.image)}
                               alt={activity.title}
                               className="w-full h-full object-cover transition-transform duration-300 hover:scale-103"
                               loading="lazy"

@@ -3,6 +3,7 @@ import { useAuth } from '../../admin/AuthContext';
 import { useBrand } from '../../context/BrandContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { apiService } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/media';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -237,7 +238,7 @@ export const AdminAssetsPage: React.FC = () => {
                 <div className="flex flex-col items-center space-y-3">
                   <div className="p-2 bg-white rounded-xl border border-stone-200 shadow-2xs">
                     <img
-                      src={`${logo.image_url}?v=${new Date(logo.updated_at || logo.created_at).getTime()}`}
+                      src={`${resolveMediaUrl(logo.image_url)}?v=${new Date(logo.updated_at || logo.created_at).getTime()}`}
                       alt={t('brand.logoAlt')}
                       className="max-h-28 max-w-full object-contain rounded-lg"
                     />
@@ -335,7 +336,7 @@ export const AdminAssetsPage: React.FC = () => {
                 <div className="flex flex-col items-center space-y-3">
                   <div className="p-2 bg-white rounded-xl border border-stone-200 shadow-2xs max-w-full">
                     <img
-                      src={`${ganesh.image_url}?v=${new Date(ganesh.updated_at || ganesh.created_at).getTime()}`}
+                      src={`${resolveMediaUrl(ganesh.image_url)}?v=${new Date(ganesh.updated_at || ganesh.created_at).getTime()}`}
                       alt={t('brand.ganeshAlt', { year: ganesh.year || ganeshYear })}
                       className="max-h-36 max-w-full object-contain rounded-lg"
                     />

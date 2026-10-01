@@ -7,6 +7,7 @@ import { LoadingState } from '../../components/ui/LoadingState';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { usePageMeta } from '../../hooks/usePageMeta';
 import { apiService } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/media';
 import { MemberItem } from '../../types';
 
 const COMMON_ROLES = [
@@ -427,7 +428,7 @@ export const AdminMembersPage: React.FC = () => {
                         <div className="w-10 h-10 rounded-full overflow-hidden border border-stone-200 bg-stone-100 mx-auto flex items-center justify-center">
                           {item.photo_url ? (
                             <img
-                              src={item.photo_url}
+                              src={resolveMediaUrl(item.photo_url)}
                               alt={memberName}
                               className="w-full h-full object-cover"
                             />
@@ -788,7 +789,7 @@ export const AdminMembersPage: React.FC = () => {
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-orange-100 shadow-md bg-stone-100 flex items-center justify-center relative">
                 {photoMember.photo_url ? (
                   <img
-                    src={photoMember.photo_url}
+                    src={resolveMediaUrl(photoMember.photo_url)}
                     alt={photoMember.name || photoMember.display_name}
                     className="w-full h-full object-cover"
                   />

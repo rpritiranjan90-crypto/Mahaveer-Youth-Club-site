@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/uploads/:path*",
+      "destination": "https://mahaveer-api.onrender.com/uploads/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

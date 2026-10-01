@@ -21,7 +21,7 @@ import {
 } from '../types';
 
 
-function resolveApiBaseUrl(): string {
+export function resolveApiBaseUrl(): string {
   let url = (import.meta.env.VITE_API_URL || '').trim();
   
   // Clean accidental 'key:' or 'value:' prefixes from environment variable inputs

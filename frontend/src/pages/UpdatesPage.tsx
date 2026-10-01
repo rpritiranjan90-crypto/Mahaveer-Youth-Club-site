@@ -10,6 +10,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../services/api';
+import { resolveMediaUrl } from '../utils/media';
 import { UpdateItem } from '../types';
 
 export const UpdatesPage: React.FC = () => {
@@ -143,7 +144,7 @@ export const UpdatesPage: React.FC = () => {
                       {item.featured_image && (
                         <div className="aspect-16/9 rounded-lg overflow-hidden bg-stone-100 -mx-2 -mt-2 mb-2">
                           <img
-                            src={item.featured_image}
+                            src={resolveMediaUrl(item.featured_image)}
                             alt={item.title}
                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-103"
                             loading="lazy"
@@ -240,7 +241,7 @@ export const UpdatesPage: React.FC = () => {
             {selectedUpdate.featured_image && (
               <div className="rounded-xl overflow-hidden max-h-72 w-full bg-stone-100">
                 <img
-                  src={selectedUpdate.featured_image}
+                  src={resolveMediaUrl(selectedUpdate.featured_image)}
                   alt={selectedUpdate.title}
                   className="w-full h-full object-cover"
                 />

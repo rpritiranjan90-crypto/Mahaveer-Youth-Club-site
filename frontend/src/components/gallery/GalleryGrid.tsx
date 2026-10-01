@@ -4,6 +4,7 @@ import { Badge } from '../ui/Badge';
 import { GalleryLightbox } from './GalleryLightbox';
 import { GalleryPhoto } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { resolveMediaUrl } from '../../utils/media';
 
 export interface GalleryGridProps {
   photos?: GalleryPhoto[];
@@ -114,7 +115,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
               >
                 <div className="aspect-4/3 overflow-hidden bg-stone-200">
                   <img
-                    src={thumbUrl}
+                    src={resolveMediaUrl(thumbUrl)}
                     alt={photo.alt_text || photo.title}
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103"

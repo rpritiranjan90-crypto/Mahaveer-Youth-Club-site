@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../admin/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { apiService } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/media';
 import { GalleryPhoto, ContentStatus } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -209,7 +210,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="relative w-28 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden border border-stone-300 bg-stone-200 shrink-0 shadow-xs">
               <img
-                src={value}
+                src={resolveMediaUrl(value)}
                 alt="Selected media preview"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -432,7 +433,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
                           >
                             <div className="aspect-4/3 overflow-hidden rounded-lg bg-stone-200 relative">
                               <img
-                                src={imgUrl}
+                                src={resolveMediaUrl(imgUrl)}
                                 alt={item.alt_text || item.title}
                                 loading="lazy"
                                 className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-103"
