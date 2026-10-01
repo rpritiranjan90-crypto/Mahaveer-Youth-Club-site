@@ -52,10 +52,46 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",") if i.strip()]
+            origins = [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+            if isinstance(v, list):
+                origins = [str(i) for i in v]
+            else:
+                import json
+                try:
+                    parsed = json.loads(v)
+                    origins = [str(i) for i in parsed] if isinstance(parsed, list) else [str(parsed)]
+                except Exception:
+                    origins = [v.strip()]
+        else:
+            origins = []
+
+        cleaned = []
+        for o in origins:
+            s = str(o).strip().strip('"').strip("'")
+            if s == "*":
+                cleaned.extend([
+                    "https://mahaveer-youth-club-site.vercel.app",
+                    "https://mahaveeryouthclub.org",
+                    "https://www.mahaveeryouthclub.org",
+                    "http://localhost:5173",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:5173",
+                ])
+            elif s:
+                cleaned.append(s)
+
+        if not cleaned:
+            cleaned = [
+                "https://mahaveer-youth-club-site.vercel.app",
+                "https://mahaveeryouthclub.org",
+                "https://www.mahaveeryouthclub.org",
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173",
+            ]
+
+        return list(dict.fromkeys(cleaned))
 
     @model_validator(mode="after")
     def validate_production_safety(self) -> "Settings":
@@ -73,9 +109,6 @@ class Settings(BaseSettings):
             ]
             if self.SECRET_KEY in insecure_keys or len(self.SECRET_KEY) < 32:
                 raise ValueError("A cryptographically secure SECRET_KEY (>= 32 characters) must be configured in production")
-            for origin in self.CORS_ORIGINS:
-                if str(origin).strip() == "*":
-                    raise ValueError("Wildcard '*' CORS origin is strictly forbidden in production with credentials")
 
         return self
 
