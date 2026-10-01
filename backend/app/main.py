@@ -149,9 +149,9 @@ async def unhandled_exception_handler(_: Request, exc: Exception) -> JSONRespons
 
 
 # -----------------------------------------------------------------------------
-# Static Media Mount & API Router Mount
-# -----------------------------------------------------------------------------
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from backend.app.services.storage import get_upload_dir
 
 upload_dir = get_upload_dir()
 app.mount("/uploads", StaticFiles(directory=str(upload_dir), html=False), name="uploads")
