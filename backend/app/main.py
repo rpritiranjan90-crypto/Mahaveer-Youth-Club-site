@@ -151,8 +151,7 @@ async def unhandled_exception_handler(_: Request, exc: Exception) -> JSONRespons
 # -----------------------------------------------------------------------------
 # Static Media Mount & API Router Mount
 # -----------------------------------------------------------------------------
-from fastapi.staticfiles import StaticFiles
-from backend.app.services.storage import get_upload_dir
+from fastapi.responses import RedirectResponse
 
 upload_dir = get_upload_dir()
 app.mount("/uploads", StaticFiles(directory=str(upload_dir), html=False), name="uploads")
@@ -165,6 +164,14 @@ def root() -> dict:
         "docs": f"{settings.API_V1_STR}/docs",
         "health": f"{settings.API_V1_STR}/health",
     }
+
+@app.get("/docs", include_in_schema=False)
+def redirect_docs() -> RedirectResponse:
+    return RedirectResponse(url=f"{settings.API_V1_STR}/docs")
+
+@app.get("/health", include_in_schema=False)
+def redirect_health() -> RedirectResponse:
+    return RedirectResponse(url=f"{settings.API_V1_STR}/health")
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
