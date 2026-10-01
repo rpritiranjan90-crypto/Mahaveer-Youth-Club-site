@@ -59,10 +59,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
             "img-src 'self' data: blob: https:; "
-            "font-src 'self' data: https:; "
+            "font-src 'self' data: https: https://fonts.gstatic.com; "
             "connect-src 'self' http://localhost:* http://127.0.0.1:* https://*; "
             "frame-ancestors 'none'; "
             "object-src 'none'; "
