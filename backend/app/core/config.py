@@ -38,6 +38,9 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
+        "https://mahaveer-youth-club-site.vercel.app",
+        "https://mahaveeryouthclub.org",
+        "https://www.mahaveeryouthclub.org",
     ]
 
     # Storage & Uploads
