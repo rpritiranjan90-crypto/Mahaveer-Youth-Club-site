@@ -48,7 +48,7 @@ def upgrade() -> None:
         "name = COALESCE(display_name, ''), "
         "designation = COALESCE(role, 'Member'), "
         "display_order = COALESCE(sort_order, 0), "
-        "is_active = COALESCE(is_visible, 1)"
+        "is_active = COALESCE(is_visible, true)"
     )
 
 
