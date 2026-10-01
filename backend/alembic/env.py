@@ -36,6 +36,8 @@ x_args = context.get_x_argument(as_dictionary=True)
 db_url = x_args.get("db_url") or settings.DATABASE_URL or config.get_main_option("sqlalchemy.url")
 
 if db_url:
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
     config.set_main_option("sqlalchemy.url", db_url)
 
 
