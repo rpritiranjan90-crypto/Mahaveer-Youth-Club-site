@@ -28,9 +28,39 @@ from backend.app.api.v1.api import api_router
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     """
     Application lifecycle management.
-    Logs technical startup and shutdown events safely and bootstraps superuser.
+    Applies Alembic migrations to head, logs technical events, and bootstraps superuser.
     """
     logger.info("Starting %s in [%s] environment...", settings.APP_NAME, settings.APP_ENV)
+    
+    # 1. Automatically apply all Alembic database schema migrations
+    try:
+        from alembic.config import Config
+        from alembic import command
+        
+        ini_path = _backend_dir / "alembic.ini"
+        if not ini_path.exists():
+            ini_path = _project_root / "alembic.ini"
+            
+        if ini_path.exists():
+            alembic_cfg = Config(str(ini_path))
+            alembic_cfg.set_main_option("script_location", str(_backend_dir / "alembic"))
+            if settings.DATABASE_URL:
+                db_url = settings.DATABASE_URL
+                if db_url.startswith("postgres://"):
+                    db_url = db_url.replace("postgres://", "postgresql://", 1)
+                alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+            command.upgrade(alembic_cfg, "head")
+            logger.info("Alembic migrations successfully applied to head.")
+    except Exception as e:
+        logger.warning("Alembic startup migration error (falling back to create_all): %s", str(e))
+        try:
+            from backend.app.core.database import engine, Base
+            import backend.app.models  # noqa
+            Base.metadata.create_all(bind=engine)
+        except Exception as e2:
+            logger.error("Database table create_all failed: %s", str(e2))
+
+    # 2. Bootstrapping initial superuser
     try:
         from backend.app.core.database import SessionLocal
         from backend.app.core.init_admin import init_first_superuser
