@@ -1,3 +1,15 @@
+import sys
+from pathlib import Path
+
+# Ensure project root and backend dir are in sys.path so 'backend.app' imports work from any working directory
+_file_path = Path(__file__).resolve()
+_backend_dir = _file_path.parent.parent  # backend
+_project_root = _backend_dir.parent      # project root
+
+for _p in (str(_project_root), str(_backend_dir)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from fastapi import FastAPI, Request, status
