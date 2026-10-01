@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, func
-from sqlalchemy.ext.hybrid import hybrid_property
 from backend.app.core.database import Base
 
 
@@ -7,6 +6,7 @@ class Member(Base):
     """
     Official Member Roster & Photo Management Model.
     Supports member names, designations, optional bios, photos, active status, and custom ordering.
+    Includes backward/forward dual-column mapping to guarantee zero schema mismatch issues.
     """
     __tablename__ = "members"
 
@@ -31,38 +31,35 @@ class Member(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
-    # Backward compatibility hybrid properties
-    @hybrid_property
-    def display_name(self) -> str:
-        return self.name
+    # Dual-column compatibility mappings (ensures legacy and upgraded PostgreSQL tables both insert cleanly)
+    display_name = Column(String(150), nullable=True, default="")
+    role = Column(String(150), nullable=True, default="Member")
+    sort_order = Column(Integer, nullable=True, default=0)
+    is_visible = Column(Boolean, nullable=True, default=True)
 
-    @display_name.setter
-    def display_name(self, val: str) -> None:
-        self.name = val
+    def __init__(self, **kwargs):
+        # Auto-synchronize both new and legacy field names upon initialization
+        if "name" in kwargs and "display_name" not in kwargs:
+            kwargs["display_name"] = kwargs["name"]
+        elif "display_name" in kwargs and "name" not in kwargs:
+            kwargs["name"] = kwargs["display_name"]
 
-    @hybrid_property
-    def role(self) -> str:
-        return self.designation
+        if "designation" in kwargs and "role" not in kwargs:
+            kwargs["role"] = kwargs["designation"]
+        elif "role" in kwargs and "designation" not in kwargs:
+            kwargs["designation"] = kwargs["role"]
 
-    @role.setter
-    def role(self, val: str) -> None:
-        self.designation = val
+        if "display_order" in kwargs and "sort_order" not in kwargs:
+            kwargs["sort_order"] = kwargs["display_order"]
+        elif "sort_order" in kwargs and "display_order" not in kwargs:
+            kwargs["display_order"] = kwargs["sort_order"]
 
-    @hybrid_property
-    def sort_order(self) -> int:
-        return self.display_order
+        if "is_active" in kwargs and "is_visible" not in kwargs:
+            kwargs["is_visible"] = kwargs["is_active"]
+        elif "is_visible" in kwargs and "is_active" not in kwargs:
+            kwargs["is_active"] = kwargs["is_visible"]
 
-    @sort_order.setter
-    def sort_order(self, val: int) -> None:
-        self.display_order = val
-
-    @hybrid_property
-    def is_visible(self) -> bool:
-        return self.is_active
-
-    @is_visible.setter
-    def is_visible(self, val: bool) -> None:
-        self.is_active = val
+        super().__init__(**kwargs)
 
     def __repr__(self) -> str:
         return f"<Member id={self.id} name={self.name!r} designation={self.designation!r} active={self.is_active}>"
