@@ -21,7 +21,25 @@ import {
 } from '../types';
 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+function resolveApiBaseUrl(): string {
+  let url = (import.meta.env.VITE_API_URL || '').trim();
+  
+  // Clean accidental 'key:' or 'value:' prefixes from environment variable inputs
+  if (url.toLowerCase().startsWith('key:')) {
+    url = url.substring(4).trim();
+  }
+  if (url.toLowerCase().startsWith('value:')) {
+    url = url.substring(6).trim();
+  }
+  
+  if (!url) {
+    url = 'https://mahaveer-api.onrender.com/api/v1';
+  }
+  
+  return url.replace(/\/+$/, '');
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 /**
  * Base fetch wrapper with standardized error parsing.
