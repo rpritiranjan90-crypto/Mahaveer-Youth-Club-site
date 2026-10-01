@@ -28,9 +28,17 @@ from backend.app.api.v1.api import api_router
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     """
     Application lifecycle management.
-    Logs technical startup and shutdown events safely.
+    Logs technical startup and shutdown events safely and bootstraps superuser.
     """
     logger.info("Starting %s in [%s] environment...", settings.APP_NAME, settings.APP_ENV)
+    try:
+        from backend.app.core.database import SessionLocal
+        from backend.app.core.init_admin import init_first_superuser
+        with SessionLocal() as db:
+            init_first_superuser(db)
+    except Exception as e:
+        logger.warning("Superuser auto-initialization skipped or failed: %s", str(e))
+
     try:
         yield
     finally:

@@ -10,25 +10,21 @@ from backend.app.models.user import User
 import backend.app.models  # noqa: F401
 
 
+from backend.app.core.config import settings
+
 def init_first_superuser(db: Session) -> None:
     """
-    Initializes the initial superuser from environment variables.
+    Initializes the initial superuser from settings/environment variables.
     Does not overwrite existing administrator accounts.
     """
-    load_dotenv()
-    Base.metadata.create_all(bind=engine)
-    admin_email = os.getenv("FIRST_SUPERUSER_EMAIL")
-    admin_password = os.getenv("FIRST_SUPERUSER_PASSWORD")
+    admin_email = os.getenv("FIRST_SUPERUSER_EMAIL") or settings.FIRST_SUPERUSER_EMAIL
+    admin_password = os.getenv("FIRST_SUPERUSER_PASSWORD") or settings.FIRST_SUPERUSER_PASSWORD
 
     if not admin_email or not admin_password:
         logger.info("FIRST_SUPERUSER_EMAIL or FIRST_SUPERUSER_PASSWORD not set; skipping auto-init.")
         return
 
     admin_email = admin_email.strip().lower()
-
-    if len(admin_password) < 12:
-        logger.error("FIRST_SUPERUSER_PASSWORD must be at least 12 characters long.")
-        return
 
     existing_user = db.query(User).filter(User.email == admin_email).first()
     if existing_user:
