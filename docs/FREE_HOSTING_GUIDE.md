@@ -67,9 +67,9 @@ If you haven't already pushed your code to GitHub:
    - `SECRET_KEY` = *(generate any random 32+ character string)*
    - `DATABASE_URL` = *(paste your Neon PostgreSQL connection string from Step 2)*
    - `CORS_ORIGINS` = `["*"]` *(or your Vercel URL once generated)*
-   - `CLOUDINARY_CLOUD_NAME` = `z1aoi3i6` *(your Cloudinary cloud name)*
-   - `CLOUDINARY_API_KEY` = `288948134476681` *(your Cloudinary API key)*
-   - `CLOUDINARY_API_SECRET` = `2u0JyxrzrWxeBaNoBkTlTUexWNM` *(your Cloudinary API secret)*
+   - `CLOUDINARY_CLOUD_NAME` = `your_cloudinary_cloud_name`
+   - `CLOUDINARY_API_KEY` = `your_cloudinary_api_key`
+   - `CLOUDINARY_API_SECRET` = `your_cloudinary_api_secret`
 6. Click **Create Web Service**.
 7. Render will build the backend, apply Alembic migrations to Neon, and give you a free URL like:
    `https://mahaveer-api.onrender.com`

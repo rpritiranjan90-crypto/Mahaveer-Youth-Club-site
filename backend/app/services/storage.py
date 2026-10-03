@@ -11,6 +11,9 @@ import cloudinary.utils
 from fastapi import HTTPException, status
 from PIL import Image
 
+# Prevent decompression bomb Denial of Service (limit to ~25 megapixels)
+Image.MAX_IMAGE_PIXELS = 25_000_000
+
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
 

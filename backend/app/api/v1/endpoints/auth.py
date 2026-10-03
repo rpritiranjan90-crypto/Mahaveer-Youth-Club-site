@@ -9,7 +9,7 @@ from backend.app.api.deps import get_client_ip, get_current_admin, get_current_u
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.logging import logger
-from backend.app.core.rate_limit import login_rate_limiter
+from backend.app.core.rate_limit import login_rate_limiter, two_factor_rate_limiter
 from backend.app.core.security import (
     create_access_token,
     create_2fa_challenge_token,
@@ -203,6 +203,21 @@ def verify_2fa(
             detail="User authentication state invalid.",
         )
 
+    rate_key = f"{user.id}:{user.email}"
+    if not two_factor_rate_limiter.is_allowed(client_ip, rate_key):
+        record_audit_event(
+            db,
+            action="2FA_RATE_LIMITED",
+            user_id=user.id,
+            user_email=user.email,
+            ip_address=client_ip,
+            details={"reason": "Excessive failed 2FA verification attempts"},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed 2FA verification attempts. Please try again in 5 minutes.",
+        )
+
     # 2. Check TOTP Code
     input_code = verify_data.code.strip()
     is_totp_valid = False
@@ -226,6 +241,7 @@ def verify_2fa(
                 break
 
     if not is_totp_valid and not is_recovery_valid:
+        two_factor_rate_limiter.record_failed_attempt(client_ip, rate_key)
         record_audit_event(
             db,
             action="2FA_VERIFY_FAILURE",
@@ -237,6 +253,9 @@ def verify_2fa(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication code.",
         )
+
+    # Reset rate limit counter on successful 2FA verification
+    two_factor_rate_limiter.reset(client_ip, rate_key)
 
     # If recovery code used, mark as consumed immediately (single-use)
     if is_recovery_valid and used_recovery_entry:

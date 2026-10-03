@@ -24,8 +24,8 @@ class Settings(BaseSettings):
     # Authentication & Sessions
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    FIRST_SUPERUSER_EMAIL: Optional[str] = "rpritiranjan90@gmail.com"
-    FIRST_SUPERUSER_PASSWORD: Optional[str] = "Fukun@891755"
+    FIRST_SUPERUSER_EMAIL: Optional[str] = None
+    FIRST_SUPERUSER_PASSWORD: Optional[str] = None
 
     # Database
     DATABASE_URL: str = "postgresql://mahaveer_user:mahaveer_pass@localhost:5432/mahaveer_db"

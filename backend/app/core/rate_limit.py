@@ -64,5 +64,6 @@ class LoginRateLimiter:
             self._attempts.clear()
 
 
-# Global singleton rate limiter instance
+# Global singleton rate limiter instances
 login_rate_limiter = LoginRateLimiter(max_attempts=5, window_seconds=300)
+two_factor_rate_limiter = LoginRateLimiter(max_attempts=5, window_seconds=300)

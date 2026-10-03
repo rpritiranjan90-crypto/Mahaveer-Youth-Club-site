@@ -119,7 +119,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.CORS_ORIGINS],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"^https:\/\/mahaveer-youth-club(-site)?(-[a-zA-Z0-9_-]+)?\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],

@@ -13,12 +13,20 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 
 def get_client_ip(request: Request) -> str:
     """
-    Extracts the client IP address from the request headers or client socket.
+    Extracts the client IP address securely from standard reverse proxy headers
+    (Cloudflare CF-Connecting-IP, True-Client-IP, X-Real-IP, or X-Forwarded-For)
+    falling back to direct client socket host.
     """
+    for header in ("CF-Connecting-IP", "True-Client-IP", "X-Real-IP"):
+        val = request.headers.get(header)
+        if val and val.strip():
+            return val.strip()
+
     forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        # Take the leftmost untrusted IP
+    if forwarded and forwarded.strip():
+        # Leftmost client IP
         return forwarded.split(",")[0].strip()
+
     return request.client.host if request.client else "127.0.0.1"
 
 

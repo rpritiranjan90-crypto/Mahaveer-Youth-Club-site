@@ -1,5 +1,5 @@
 import io
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -81,10 +81,10 @@ def test_save_image_with_cloudinary():
         "height": 100,
     }
 
-    with patch("backend.app.services.storage.settings.is_cloudinary_configured", True), \
-         patch("backend.app.services.storage.settings.CLOUDINARY_CLOUD_NAME", "z1aoi3i6"), \
-         patch("backend.app.services.storage.settings.CLOUDINARY_API_KEY", "288948134476681"), \
-         patch("backend.app.services.storage.settings.CLOUDINARY_API_SECRET", "mock_secret"), \
+    with patch.object(Settings, "is_cloudinary_configured", new_callable=PropertyMock, return_value=True), \
+         patch.object(settings, "CLOUDINARY_CLOUD_NAME", "z1aoi3i6"), \
+         patch.object(settings, "CLOUDINARY_API_KEY", "288948134476681"), \
+         patch.object(settings, "CLOUDINARY_API_SECRET", "mock_secret"), \
          patch("cloudinary.uploader.upload", return_value=mock_upload_resp) as mock_upload:
 
         image_url, thumb_url = StorageService.save_image(img_bytes, content_type="image/jpeg", subfolder="gallery")
@@ -111,7 +111,7 @@ def test_save_site_asset_with_cloudinary():
         "height": 200,
     }
 
-    with patch("backend.app.services.storage.settings.is_cloudinary_configured", True), \
+    with patch.object(Settings, "is_cloudinary_configured", new_callable=PropertyMock, return_value=True), \
          patch("cloudinary.uploader.upload", return_value=mock_upload_resp):
 
         storage_path, mime, size, width, height = StorageService.save_site_asset(
@@ -134,7 +134,7 @@ def test_save_member_photo_with_cloudinary():
         "height": 400,
     }
 
-    with patch("backend.app.services.storage.settings.is_cloudinary_configured", True), \
+    with patch.object(Settings, "is_cloudinary_configured", new_callable=PropertyMock, return_value=True), \
          patch("cloudinary.uploader.upload", return_value=mock_upload_resp) as mock_upload:
 
         storage_path, mime, size, width, height = StorageService.save_member_photo(
@@ -153,7 +153,7 @@ def test_save_member_photo_with_cloudinary():
 def test_cloudinary_upload_failure_handles_cleanly():
     img_bytes = create_test_image(format_type="JPEG")
 
-    with patch("backend.app.services.storage.settings.is_cloudinary_configured", True), \
+    with patch.object(Settings, "is_cloudinary_configured", new_callable=PropertyMock, return_value=True), \
          patch("cloudinary.uploader.upload", side_effect=Exception("Connection timed out to Cloudinary API")):
 
         with pytest.raises(HTTPException) as exc_info:
@@ -187,7 +187,7 @@ def test_validation_rejects_oversized_file():
 def test_delete_cloudinary_file_success():
     cloudinary_url = "https://res.cloudinary.com/z1aoi3i6/image/upload/v1/mahaveer_club/members/member123.jpg"
 
-    with patch("backend.app.services.storage.settings.is_cloudinary_configured", True), \
+    with patch.object(Settings, "is_cloudinary_configured", new_callable=PropertyMock, return_value=True), \
          patch("cloudinary.uploader.destroy", return_value={"result": "ok"}) as mock_destroy:
 
         result = StorageService.delete_file(cloudinary_url)
@@ -198,7 +198,7 @@ def test_delete_cloudinary_file_success():
 def test_delete_cloudinary_file_handles_not_found():
     cloudinary_url = "https://res.cloudinary.com/z1aoi3i6/image/upload/v1/mahaveer_club/gallery/photo999.jpg"
 
-    with patch("backend.app.services.storage.settings.is_cloudinary_configured", True), \
+    with patch.object(Settings, "is_cloudinary_configured", new_callable=PropertyMock, return_value=True), \
          patch("cloudinary.uploader.destroy", return_value={"result": "not found"}):
 
         result = StorageService.delete_file(cloudinary_url)
