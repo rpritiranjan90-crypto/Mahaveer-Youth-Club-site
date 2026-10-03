@@ -51,6 +51,19 @@ def test_cloudinary_configured_with_url():
     assert s.is_cloudinary_configured is True
 
 
+def test_configure_cloudinary_from_url_populates_sdk():
+    import cloudinary
+    from backend.app.services.storage import configure_cloudinary
+
+    with patch.object(settings, "CLOUDINARY_URL", "cloudinary://123456789:secret_token@mycloud"):
+        configure_cloudinary()
+        conf = cloudinary.config()
+        assert conf.cloud_name == "mycloud"
+        assert conf.api_key == "123456789"
+        assert conf.api_secret == "secret_token"
+        assert conf.secure is True
+
+
 # -----------------------------------------------------------------------------
 # 2. Public ID Extraction Tests
 # -----------------------------------------------------------------------------

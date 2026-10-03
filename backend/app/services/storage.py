@@ -5,6 +5,8 @@ import uuid
 from pathlib import Path
 from typing import Optional, Tuple
 
+from urllib.parse import urlparse
+
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
@@ -48,7 +50,13 @@ def configure_cloudinary() -> None:
     """
     c_url = (settings.CLOUDINARY_URL or "").strip()
     if c_url.startswith("cloudinary://"):
-        cloudinary.config(cloudinary_url=c_url, secure=True)
+        parsed = urlparse(c_url)
+        cloudinary.config(
+            cloud_name=parsed.hostname,
+            api_key=parsed.username,
+            api_secret=parsed.password,
+            secure=True,
+        )
     elif settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY and settings.CLOUDINARY_API_SECRET:
         cloudinary.config(
             cloud_name=str(settings.CLOUDINARY_CLOUD_NAME).strip(),
