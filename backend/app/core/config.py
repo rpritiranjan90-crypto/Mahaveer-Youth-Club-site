@@ -48,6 +48,23 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_BYTES: int = 5 * 1024 * 1024  # 5 MB
     ALLOWED_IMAGE_TYPES: List[str] = ["image/jpeg", "image/png", "image/webp"]
 
+    # Cloudinary Persistent Cloud Storage (Optional in local dev, required for persistent production media)
+    CLOUDINARY_CLOUD_NAME: Optional[str] = None
+    CLOUDINARY_API_KEY: Optional[str] = None
+    CLOUDINARY_API_SECRET: Optional[str] = None
+    CLOUDINARY_URL: Optional[str] = None
+
+    @property
+    def is_cloudinary_configured(self) -> bool:
+        """Returns True if Cloudinary credentials are fully provided."""
+        if self.CLOUDINARY_URL and str(self.CLOUDINARY_URL).startswith("cloudinary://"):
+            return True
+        return bool(
+            self.CLOUDINARY_CLOUD_NAME
+            and self.CLOUDINARY_API_KEY
+            and self.CLOUDINARY_API_SECRET
+        )
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

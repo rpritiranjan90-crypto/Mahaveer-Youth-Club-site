@@ -50,9 +50,14 @@ DATABASE_URL=postgresql://mahaveer_admin:YOUR_SECURE_DB_PASSWORD@localhost:5432/
 # CORS Configuration (Only allowed production domains)
 CORS_ORIGINS=["https://mahaveeryouthclub.org","https://www.mahaveeryouthclub.org"]
 
-# File Storage Configuration
+# File Storage Configuration (Local Fallback)
 UPLOAD_DIR=/opt/mahaveer-club/backend/uploads
 MAX_UPLOAD_SIZE_BYTES=5242880
+
+# Cloudinary Persistent Cloud Media Storage (Recommended for Production & Ephemeral Hosts)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 # Initial Admin Bootstrap (Optional first-run bootstrap; unset after initial setup)
 FIRST_SUPERUSER_EMAIL=official-admin@mahaveeryouthclub.org
