@@ -54,6 +54,14 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: Optional[str] = None
     CLOUDINARY_URL: Optional[str] = None
 
+    @field_validator("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET", "CLOUDINARY_URL", mode="before")
+    @classmethod
+    def sanitize_cloudinary_strings(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and isinstance(v, str):
+            cleaned = v.strip().strip('"').strip("'")
+            return cleaned if cleaned else None
+        return v
+
     @property
     def is_cloudinary_configured(self) -> bool:
         """Returns True if Cloudinary credentials are fully provided."""

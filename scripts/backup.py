@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Production Database & Media Backup Utility
-Project: Mahaveer Youth Club Banza V2
+Production Database Backup Utility
+Project: Mahaveer Youth Club Banza
 
-Backs up:
-1. Database (PostgreSQL via pg_dump or SQLite via online transactional backup API)
-2. Media Uploads (uploads/ directory tar.gz archive)
-3. Generates a signed SHA-256 manifest JSON with file metadata and table counts.
+Creates timestamped, verified backups of the application database:
+1. PostgreSQL: Native custom-format compressed archive (pg_dump -F c)
+2. SQLite (Dev/Test): Online transactional backup via Python sqlite3 backup API (.sqlite.gz)
+3. Best-effort Python fallback: JSON table data export (secondary fallback when pg_dump is absent)
+
+Generates a SHA-256 integrity manifest with table row counts and file metadata.
 
 Usage:
-    python scripts/backup.py [--output-dir ./backups] [--skip-media] [--db-url URL]
+    python scripts/backup.py [--output-dir ./backups/database] [--db-url URL] [--format {native,json-export}]
 """
 
 import argparse
@@ -21,9 +23,9 @@ import shutil
 import sqlite3
 import subprocess
 import sys
-import tarfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 # Ensure project root is in sys.path
@@ -31,16 +33,130 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from backend.app.core.config import settings
+# Tables managed by application models
+EXPECTED_TABLES = [
+    "users",
+    "recovery_codes",
+    "refresh_tokens",
+    "audit_logs",
+    "updates",
+    "activities",
+    "gallery_items",
+    "members",
+    "site_assets",
+    "alembic_version",
+]
+
+
+def mask_db_url(url: str) -> str:
+    """Masks database passwords in connection URLs for safe logging."""
+    if not url:
+        return "<EMPTY>"
+    try:
+        parsed = urlparse(url)
+        if parsed.password:
+            netloc = f"{parsed.username or ''}:***@{parsed.hostname or ''}"
+            if parsed.port:
+                netloc += f":{parsed.port}"
+            return parsed._replace(netloc=netloc).geturl()
+        return url
+    except Exception:
+        return "<UNPARSEABLE_DB_URL>"
 
 
 def calculate_sha256(filepath: Path) -> str:
-    """Computes SHA-256 hash of a file for integrity verification."""
+    """Computes SHA-256 checksum of a file for integrity verification."""
     sha256 = hashlib.sha256()
     with open(filepath, "rb") as f:
         for chunk in iter(lambda: f.read(65536), b""):
             sha256.update(chunk)
     return sha256.hexdigest()
+
+
+def count_postgres_tables(db_url: str) -> Dict[str, int]:
+    """Queries PostgreSQL database to gather table row counts for the manifest."""
+    table_counts: Dict[str, int] = {}
+    try:
+        from sqlalchemy import create_engine, text
+        normalized_url = db_url.replace("postgres://", "postgresql://", 1) if db_url.startswith("postgres://") else db_url
+        engine = create_engine(normalized_url, pool_pre_ping=True)
+        with engine.connect() as conn:
+            for table in EXPECTED_TABLES:
+                try:
+                    res = conn.execute(text(f'SELECT COUNT(*) FROM "{table}"'))
+                    table_counts[table] = res.scalar() or 0
+                except Exception:
+                    table_counts[table] = 0
+        engine.dispose()
+    except Exception as e:
+        print(f"    [WARN] Could not retrieve live table row counts: {e}", file=sys.stderr)
+    return table_counts
+
+
+def backup_postgresql_native(db_url: str, output_dump_path: Path) -> dict:
+    """
+    Performs native custom-format PostgreSQL backup using pg_dump -F c.
+    This is the primary production backup method for PostgreSQL.
+    """
+    parsed = urlparse(db_url)
+    username = parsed.username or "postgres"
+    password = parsed.password or ""
+    hostname = parsed.hostname or "localhost"
+    port = str(parsed.port or 5432)
+    database = parsed.path.lstrip("/")
+
+    # Check pg_dump availability
+    if not shutil.which("pg_dump"):
+        raise FileNotFoundError(
+            "pg_dump executable not found in system PATH.\n"
+            "To perform a native PostgreSQL backup, install PostgreSQL client tools or use --format json-export for a best-effort secondary export."
+        )
+
+    env = os.environ.copy()
+    if password:
+        env["PGPASSWORD"] = password
+
+    cmd = [
+        "pg_dump",
+        "-h", hostname,
+        "-p", port,
+        "-U", username,
+        "-d", database,
+        "-F", "c",          # Custom archive format (compressed, supports pg_restore)
+        "-b",               # Include large objects
+        "-v",               # Verbose
+        "-f", str(output_dump_path),
+    ]
+
+    print(f"--> Executing native PostgreSQL dump to {output_dump_path.name} ...")
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+    )
+    _, stderr = process.communicate()
+    if process.returncode != 0:
+        err_msg = stderr.decode("utf-8", errors="ignore").strip()
+        raise RuntimeError(f"pg_dump failed with exit code {process.returncode}: {err_msg}")
+
+    if not output_dump_path.exists() or output_dump_path.stat().st_size == 0:
+        raise RuntimeError(f"pg_dump produced an empty or missing file at: {output_dump_path}")
+
+    table_counts = count_postgres_tables(db_url)
+
+    return {
+        "engine": "postgresql",
+        "format": "custom_dump",
+        "database": database,
+        "host": hostname,
+        "port": port,
+        "backup_file": output_dump_path.name,
+        "file_size_bytes": output_dump_path.stat().st_size,
+        "sha256": calculate_sha256(output_dump_path),
+        "table_counts": table_counts,
+        "is_native_dump": True,
+    }
 
 
 def backup_sqlite(db_path: Path, output_gz_path: Path) -> dict:
@@ -52,7 +168,6 @@ def backup_sqlite(db_path: Path, output_gz_path: Path) -> dict:
 
     temp_raw_backup = output_gz_path.with_suffix(".tmp")
     
-    # 1. Connect and perform online backup to temporary file
     src_conn = sqlite3.connect(str(db_path))
     dest_conn = sqlite3.connect(str(temp_raw_backup))
     with dest_conn:
@@ -65,7 +180,7 @@ def backup_sqlite(db_path: Path, output_gz_path: Path) -> dict:
     table_counts = {}
     for table in tables:
         try:
-            cursor.execute(f"SELECT COUNT(*) FROM \"{table}\";")
+            cursor.execute(f'SELECT COUNT(*) FROM "{table}";')
             table_counts[table] = cursor.fetchone()[0]
         except Exception:
             table_counts[table] = 0
@@ -73,7 +188,7 @@ def backup_sqlite(db_path: Path, output_gz_path: Path) -> dict:
     dest_conn.close()
     src_conn.close()
 
-    # 2. Compress to .gz
+    # Compress to .gz
     with open(temp_raw_backup, "rb") as f_in, gzip.open(output_gz_path, "wb", compresslevel=9) as f_out:
         shutil.copyfileobj(f_in, f_out)
 
@@ -82,165 +197,182 @@ def backup_sqlite(db_path: Path, output_gz_path: Path) -> dict:
 
     return {
         "engine": "sqlite",
+        "format": "sqlite_gz",
         "original_file": str(db_path.name),
-        "compressed_size_bytes": output_gz_path.stat().st_size,
+        "backup_file": output_gz_path.name,
+        "file_size_bytes": output_gz_path.stat().st_size,
         "sha256": calculate_sha256(output_gz_path),
         "table_counts": table_counts,
+        "is_native_dump": True,
     }
 
 
-def backup_postgresql(db_url: str, output_gz_path: Path) -> dict:
+def backup_python_json_export(db_url: str, output_gz_path: Path) -> dict:
     """
-    Performs a pg_dump backup of a PostgreSQL database with safe credential handling.
+    Secondary best-effort Python table data export using SQLAlchemy.
+    NOTE: This is NOT equivalent to a native PostgreSQL custom-format dump;
+    it serves as a secondary best-effort data recovery export when pg_dump is unavailable.
     """
-    parsed = urlparse(db_url)
-    username = parsed.username or "postgres"
-    password = parsed.password or ""
-    hostname = parsed.hostname or "localhost"
-    port = str(parsed.port or 5432)
-    database = parsed.path.lstrip("/")
+    from sqlalchemy import create_engine, text
+    normalized_url = db_url.replace("postgres://", "postgresql://", 1) if db_url.startswith("postgres://") else db_url
+    engine = create_engine(normalized_url, pool_pre_ping=True)
+    
+    export_data = {
+        "export_metadata": {
+            "app_name": "Mahaveer Youth Club Banza API",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "export_type": "secondary_best_effort_json_export",
+            "note": "Secondary table data export. Not equivalent to native PostgreSQL custom-format dump.",
+        },
+        "tables": {},
+    }
+    table_counts: Dict[str, int] = {}
 
-    env = os.environ.copy()
-    if password:
-        env["PGPASSWORD"] = password
+    with engine.connect() as conn:
+        for table in EXPECTED_TABLES:
+            try:
+                res = conn.execute(text(f'SELECT * FROM "{table}"'))
+                columns = list(res.keys())
+                rows = []
+                for row in res.fetchall():
+                    row_dict = {}
+                    for col, val in zip(columns, row):
+                        if isinstance(val, (datetime, bytes)):
+                            row_dict[col] = val.isoformat() if isinstance(val, datetime) else val.hex()
+                        else:
+                            row_dict[col] = val
+                    rows.append(row_dict)
+                export_data["tables"][table] = rows
+                table_counts[table] = len(rows)
+            except Exception as e:
+                print(f"    [WARN] Skipping table {table}: {e}", file=sys.stderr)
+                table_counts[table] = 0
 
-    cmd = [
-        "pg_dump",
-        "-h", hostname,
-        "-p", port,
-        "-U", username,
-        "-d", database,
-        "--clean",
-        "--if-exists",
-        "--no-owner",
-        "--no-privileges",
-    ]
+    engine.dispose()
 
-    try:
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=env,
-        )
-        stdout, stderr = process.communicate()
-        if process.returncode != 0:
-            err_msg = stderr.decode("utf-8", errors="ignore").strip()
-            raise RuntimeError(f"pg_dump failed with exit code {process.returncode}: {err_msg}")
-
-        with gzip.open(output_gz_path, "wb", compresslevel=9) as f_out:
-            f_out.write(stdout)
-
-    except FileNotFoundError:
-        raise RuntimeError("pg_dump executable not found in system PATH. Ensure PostgreSQL client tools are installed.")
+    json_bytes = json.dumps(export_data, indent=2, default=str).encode("utf-8")
+    with gzip.open(output_gz_path, "wb", compresslevel=9) as f_out:
+        f_out.write(json_bytes)
 
     return {
-        "engine": "postgresql",
-        "database": database,
-        "host": hostname,
-        "port": port,
-        "compressed_size_bytes": output_gz_path.stat().st_size,
+        "engine": "postgresql" if db_url.startswith("postgres") else "sqlite",
+        "format": "secondary_json_export",
+        "backup_file": output_gz_path.name,
+        "file_size_bytes": output_gz_path.stat().st_size,
         "sha256": calculate_sha256(output_gz_path),
+        "table_counts": table_counts,
+        "is_native_dump": False,
+        "disclaimer": "Secondary best-effort JSON export. Not equivalent to native PostgreSQL custom-format dump.",
     }
 
 
-def backup_media(upload_dir: Path, output_tar_gz_path: Path) -> dict:
+def run_backup(
+    output_dir: Path,
+    db_url_override: Optional[str] = None,
+    backup_format: str = "native",
+) -> Path:
     """
-    Creates a compressed tar.gz archive of the persistent media uploads directory.
+    Coordinates verified database backup and manifest creation.
     """
-    if not upload_dir.exists():
-        upload_dir.mkdir(parents=True, exist_ok=True)
+    # 1. Resolve DATABASE_URL from override, config, or environment
+    db_url = db_url_override or os.environ.get("DATABASE_URL")
+    if not db_url:
+        try:
+            from backend.app.core.config import settings
+            db_url = settings.DATABASE_URL
+        except Exception:
+            pass
 
-    file_count = 0
-    total_uncompressed_bytes = 0
+    if not db_url:
+        raise ValueError(
+            "DATABASE_URL is missing. Please set the DATABASE_URL environment variable or pass --db-url."
+        )
 
-    with tarfile.open(output_tar_gz_path, "w:gz", compresslevel=9) as tar:
-        for root, _, files in os.walk(upload_dir):
-            for file in files:
-                file_path = Path(root) / file
-                if file.startswith(".") or file.endswith(".tmp"):
-                    continue
-                arcname = file_path.relative_to(upload_dir.parent)
-                tar.add(file_path, arcname=str(arcname))
-                file_count += 1
-                total_uncompressed_bytes += file_path.stat().st_size
-
-    return {
-        "file_count": file_count,
-        "uncompressed_size_bytes": total_uncompressed_bytes,
-        "compressed_size_bytes": output_tar_gz_path.stat().st_size,
-        "sha256": calculate_sha256(output_tar_gz_path),
-    }
-
-
-def run_backup(output_dir: Path, skip_media: bool = False, db_url_override: str = None) -> Path:
-    """
-    Coordinates end-to-end database and media backup.
-    """
+    output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    backup_target_dir = output_dir / f"backup_{timestamp}"
-    backup_target_dir.mkdir(parents=True, exist_ok=True)
+    masked_url = mask_db_url(db_url)
 
-    db_url = db_url_override or settings.DATABASE_URL
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting backup in: {backup_target_dir}")
+    print(f"\n=======================================================")
+    print(f" MAHAVEER YOUTH CLUB BANZA — DATABASE BACKUP")
+    print(f" Timestamp (UTC): {timestamp}")
+    print(f" Target Engine:   {masked_url}")
+    print(f" Output Folder:   {output_dir}")
+    print(f" Format Mode:     {backup_format}")
+    print(f"=======================================================\n")
 
-    # 1. Database Backup
-    db_backup_filename = f"db_backup_{timestamp}.sql.gz"
+    db_meta: dict
     if db_url.startswith("sqlite"):
         db_path_str = db_url.replace("sqlite:///", "").replace("sqlite://", "")
-        # Resolve relative SQLite path
         db_file = Path(db_path_str) if Path(db_path_str).is_absolute() else (PROJECT_ROOT / db_path_str)
-        db_backup_file = backup_target_dir / f"db_backup_{timestamp}.sqlite.gz"
-        print(f"--> Backing up SQLite database: {db_file.name} ...")
-        db_meta = backup_sqlite(db_file, db_backup_file)
+        output_file = output_dir / f"mahaveer_db_{timestamp}.sqlite.gz"
+        print(f"--> Starting SQLite online transactional backup ...")
+        db_meta = backup_sqlite(db_file, output_file)
+
     elif db_url.startswith("postgres"):
-        db_backup_file = backup_target_dir / db_backup_filename
-        print("--> Backing up PostgreSQL database ...")
-        db_meta = backup_postgresql(db_url, db_backup_file)
+        if backup_format == "native":
+            output_file = output_dir / f"mahaveer_db_{timestamp}.dump"
+            db_meta = backup_postgresql_native(db_url, output_file)
+        elif backup_format == "json-export":
+            output_file = output_dir / f"mahaveer_export_{timestamp}.json.gz"
+            print("--> Performing secondary best-effort table data export ...")
+            db_meta = backup_python_json_export(db_url, output_file)
+        else:
+            raise ValueError(f"Unknown backup format option: {backup_format}")
     else:
-        raise ValueError(f"Unsupported database scheme in URL: {db_url}")
+        raise ValueError(f"Unsupported database URL scheme in: {masked_url}")
 
-    print(f"    [OK] Database backup completed ({db_meta['compressed_size_bytes']:,} bytes)")
+    # Verify backup exists and is not empty
+    if not output_file.exists() or output_file.stat().st_size == 0:
+        raise RuntimeError(f"Backup verification failed: File {output_file} does not exist or is 0 bytes.")
 
-    # 2. Media Backup
-    media_meta = None
-    if not skip_media:
-        upload_path = PROJECT_ROOT / settings.UPLOAD_DIR
-        media_backup_file = backup_target_dir / f"media_backup_{timestamp}.tar.gz"
-        print(f"--> Backing up media assets from: {upload_path} ...")
-        media_meta = backup_media(upload_path, media_backup_file)
-        print(f"    [OK] Media backup completed: {media_meta['file_count']} files ({media_meta['compressed_size_bytes']:,} bytes)")
-    else:
-        print("--> Skipping media backup (--skip-media set)")
+    print(f"    [OK] Backup created: {output_file.name} ({output_file.stat().st_size:,} bytes)")
+    print(f"    [OK] SHA-256 Checksum: {db_meta['sha256']}")
 
-    # 3. Write Manifest
+    # 2. Write SHA-256 Integrity Manifest
     manifest = {
         "version": "2.0.0",
-        "app_name": settings.APP_NAME,
+        "app_name": "Mahaveer Youth Club Banza API",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "environment": settings.APP_ENV,
         "database": db_meta,
-        "media": media_meta,
     }
 
-    manifest_file = backup_target_dir / "manifest.json"
+    manifest_file = output_dir / f"manifest_{timestamp}.json"
     with open(manifest_file, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
-    print(f"    [OK] Manifest generated: {manifest_file.name}")
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Backup successfully created at: {backup_target_dir}\n")
-    return backup_target_dir
+    print(f"    [OK] SHA-256 Integrity Manifest: {manifest_file.name}")
+    print(f"\n[SUCCESS] Backup completed cleanly at: {output_dir}\n")
+    return output_file
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Mahaveer Youth Club Banza V2 - Backup Tool")
-    parser.add_argument("--output-dir", type=Path, default=PROJECT_ROOT / "backups", help="Target backup directory")
-    parser.add_argument("--skip-media", action="store_true", help="Skip media files backup")
-    parser.add_argument("--db-url", type=str, default=None, help="Override database URL for backup")
+    parser = argparse.ArgumentParser(description="Mahaveer Youth Club Banza - Production Database Backup Utility")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=PROJECT_ROOT / "backups" / "database",
+        help="Destination directory for database backups (default: backups/database)",
+    )
+    parser.add_argument(
+        "--db-url",
+        type=str,
+        default=None,
+        help="Optional database URL override (otherwise read from environment)",
+    )
+    parser.add_argument(
+        "--format",
+        choices=["native", "json-export"],
+        default="native",
+        help="Backup format: 'native' (pg_dump -F c / sqlite online backup) or 'json-export' (secondary best-effort fallback)",
+    )
 
     args = parser.parse_args()
     try:
-        run_backup(output_dir=args.output_dir, skip_media=args.skip_media, db_url_override=args.db_url)
+        run_backup(
+            output_dir=args.output_dir,
+            db_url_override=args.db_url,
+            backup_format=args.format,
+        )
     except Exception as e:
-        print(f"ERROR: Backup failed: {str(e)}", file=sys.stderr)
+        print(f"\n❌ BACKUP FAILED: {str(e)}", file=sys.stderr)
         sys.exit(1)

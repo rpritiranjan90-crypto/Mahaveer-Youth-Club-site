@@ -46,13 +46,14 @@ def configure_cloudinary() -> None:
     Initializes Cloudinary SDK with configured credentials from application settings.
     Guarantees HTTPS delivery and zero credential exposure.
     """
-    if settings.CLOUDINARY_URL and str(settings.CLOUDINARY_URL).startswith("cloudinary://"):
-        cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL, secure=True)
+    c_url = (settings.CLOUDINARY_URL or "").strip()
+    if c_url.startswith("cloudinary://"):
+        cloudinary.config(cloudinary_url=c_url, secure=True)
     elif settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY and settings.CLOUDINARY_API_SECRET:
         cloudinary.config(
-            cloud_name=settings.CLOUDINARY_CLOUD_NAME,
-            api_key=settings.CLOUDINARY_API_KEY,
-            api_secret=settings.CLOUDINARY_API_SECRET,
+            cloud_name=str(settings.CLOUDINARY_CLOUD_NAME).strip(),
+            api_key=str(settings.CLOUDINARY_API_KEY).strip(),
+            api_secret=str(settings.CLOUDINARY_API_SECRET).strip(),
             secure=True,
         )
 
@@ -199,7 +200,7 @@ class StorageService:
                 logger.info("Successfully uploaded image to Cloudinary: public_id=%s", public_id)
                 return image_url, thumb_url
             except Exception as e:
-                logger.error("Cloudinary save_image failed: %s", str(e))
+                logger.error("Cloudinary save_image failed: %s", str(e), exc_info=True)
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail="Image upload to cloud storage failed. Please try again.",
@@ -291,7 +292,7 @@ class StorageService:
                 logger.info("Successfully uploaded site asset to Cloudinary: public_id=%s", public_id)
                 return storage_path, detected_mime, len(file_bytes), width, height
             except Exception as e:
-                logger.error("Cloudinary save_site_asset failed: %s", str(e))
+                logger.error("Cloudinary save_site_asset failed: %s", str(e), exc_info=True)
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail="Image upload to cloud storage failed. Please try again.",
