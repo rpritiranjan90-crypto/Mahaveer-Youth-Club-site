@@ -16,7 +16,7 @@ from backend.app.schemas.content import (
     StatusTransitionRequest,
 )
 from backend.app.services.audit import record_audit_event
-from backend.app.services.storage import StorageService
+from backend.app.services.storage import StorageService, read_and_validate_upload_file
 
 router = APIRouter()
 
@@ -138,7 +138,7 @@ async def upload_gallery_image(
     """
     client_ip = get_client_ip(request)
 
-    file_bytes = await file.read()
+    file_bytes = await read_and_validate_upload_file(file)
     image_url, thumbnail_url = StorageService.save_image(
         file_bytes=file_bytes,
         content_type=file.content_type,

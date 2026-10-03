@@ -17,7 +17,7 @@ from backend.app.schemas.content import (
 )
 from backend.app.services.audit import record_audit_event
 from backend.app.services.slug import generate_unique_slug
-from backend.app.services.storage import StorageService, safe_delete_media_file
+from backend.app.services.storage import StorageService, safe_delete_media_file, read_and_validate_upload_file
 
 router = APIRouter()
 
@@ -247,7 +247,7 @@ async def upload_activity_image(
     if not activity:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found.")
 
-    file_bytes = await file.read()
+    file_bytes = await read_and_validate_upload_file(file)
     storage_path, detected_mime, file_size, width, height = StorageService.save_activity_image(
         file_bytes=file_bytes,
         content_type=file.content_type,

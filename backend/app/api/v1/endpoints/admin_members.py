@@ -15,7 +15,7 @@ from backend.app.schemas.member import (
     MemberReorderRequest,
     MemberAdminResponse,
 )
-from backend.app.services.storage import StorageService
+from backend.app.services.storage import StorageService, read_and_validate_upload_file
 from backend.app.services.audit import record_audit_event
 
 router = APIRouter()
@@ -231,7 +231,7 @@ async def upload_member_photo(
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found.")
 
-    file_bytes = await file.read()
+    file_bytes = await read_and_validate_upload_file(file)
     storage_path, detected_mime, file_size, width, height = StorageService.save_member_photo(
         file_bytes=file_bytes,
         content_type=file.content_type,

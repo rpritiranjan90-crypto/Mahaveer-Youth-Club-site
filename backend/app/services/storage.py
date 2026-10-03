@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
-from fastapi import HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from PIL import Image
 
 # Prevent decompression bomb Denial of Service (limit to ~25 megapixels)
@@ -99,6 +99,43 @@ def get_upload_dir() -> Path:
     upload_path = (base_dir / settings.UPLOAD_DIR).resolve()
     upload_path.mkdir(parents=True, exist_ok=True)
     return upload_path
+
+
+async def read_and_validate_upload_file(
+    file: UploadFile,
+    max_size_bytes: int = settings.MAX_UPLOAD_SIZE_BYTES,
+    chunk_size: int = 65536,
+) -> bytes:
+    """
+    Reads an UploadFile in streaming chunks, stopping and rejecting immediately
+    if the incoming file size exceeds max_size_bytes. Prevents memory exhaustion attacks.
+    """
+    if file.size and file.size > max_size_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Uploaded file exceeds the maximum permitted size of {max_size_bytes // (1024 * 1024)}MB.",
+        )
+
+    buffer = bytearray()
+    while True:
+        chunk = await file.read(chunk_size)
+        if not chunk:
+            break
+        buffer.extend(chunk)
+        if len(buffer) > max_size_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Uploaded file exceeds the maximum permitted size of {max_size_bytes // (1024 * 1024)}MB.",
+            )
+
+    file_bytes = bytes(buffer)
+    if len(file_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty.",
+        )
+
+    return file_bytes
 
 
 def validate_image_file(file_bytes: bytes, declared_content_type: Optional[str]) -> Tuple[str, str]:

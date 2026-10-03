@@ -9,7 +9,7 @@ from backend.app.models.user import User
 from backend.app.models.site_asset import SiteAsset
 from backend.app.schemas.asset import SiteAssetAdminResponse
 from backend.app.services.audit import record_audit_event
-from backend.app.services.storage import StorageService
+from backend.app.services.storage import StorageService, read_and_validate_upload_file
 
 router = APIRouter()
 
@@ -61,7 +61,7 @@ async def upload_or_replace_logo(
     Safely cleans up previous storage file upon successful replacement.
     """
     client_ip = get_client_ip(request)
-    file_bytes = await file.read()
+    file_bytes = await read_and_validate_upload_file(file)
 
     # Save and validate via secure storage service
     storage_path, detected_mime, file_size, width, height = StorageService.save_site_asset(
@@ -226,7 +226,7 @@ async def upload_or_replace_current_ganesh(
         )
 
     client_ip = get_client_ip(request)
-    file_bytes = await file.read()
+    file_bytes = await read_and_validate_upload_file(file)
 
     # Save and validate via secure storage service
     storage_path, detected_mime, file_size, width, height = StorageService.save_site_asset(
