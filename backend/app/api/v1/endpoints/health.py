@@ -23,7 +23,7 @@ def health_check() -> HealthResponse:
     )
 
 
-@router.get("/ready", response_model=ReadyResponse, summary="Service Readiness Check")
+@router.api_route("/ready", methods=["GET", "HEAD"], response_model=ReadyResponse, summary="Service Readiness Check")
 def readiness_check(db: Session = Depends(get_db)) -> ReadyResponse:
     """
     Validates end-to-end database connectivity.
