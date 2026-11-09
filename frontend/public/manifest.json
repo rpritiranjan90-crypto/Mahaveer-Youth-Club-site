@@ -1,0 +1,25 @@
+{
+  "short_name": "MYC Banza",
+  "name": "Mahaveer Youth Club Banza",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any 192x192 512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/og-image.svg",
+      "type": "image/svg+xml",
+      "sizes": "1200x630",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FCFBF9",
+  "theme_color": "#EA580C",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "description": "Official community and celebrations portal for Mahaveer Youth Club Banza (Est. 2012)."
+}
+
